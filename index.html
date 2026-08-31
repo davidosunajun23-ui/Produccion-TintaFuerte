@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    .modal-backdrop { background-color: rgba(0,0,0,0.7); }
+    .modal-backdrop { background-color: rgba(0,0,0,0.8); }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
@@ -19,11 +19,11 @@
         <div class="bg-blue-600 text-white p-2 rounded-lg font-black text-xl tracking-wider shadow">TF</div>
         <div>
           <h1 class="font-bold text-lg leading-tight text-white">TINTA FUERTE</h1>
-          <p class="text-xs text-slate-400">Control de Producción & Mockups</p>
+          <p class="text-xs text-slate-400">Control de Producción & Multi-Mockups</p>
         </div>
       </div>
 
-      <!-- SELECTOR DE VISTAS (PESTAÑAS) -->
+      <!-- SELECTOR DE VISTAS -->
       <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700 text-sm">
         <button id="btn-tab-taller" onclick="cambiarVista('taller')" class="px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow">
           <i class="fa-solid fa-industry"></i> Vista Taller (Producción)
@@ -43,30 +43,25 @@
   <!-- CONTENEDOR PRINCIPAL -->
   <main class="max-w-7xl mx-auto p-4 md:p-6">
 
-    <!-- ========================================== -->
-    <!-- VISTA 1: TALLER / PRODUCCIÓN (SOLO MOCKUPS) -->
-    <!-- ========================================== -->
+    <!-- VISTA 1: TALLER / PRODUCCIÓN (SOLO MOCKUPS Y TALLAS) -->
     <section id="vista-taller">
       <div class="flex justify-between items-center mb-6">
         <div>
           <h2 class="text-2xl font-black tracking-wide text-blue-400 flex items-center gap-2">
             <i class="fa-solid fa-scissors"></i> ÓRDENES ACTIVAS EN MÁQUINA
           </h2>
-          <p class="text-xs text-slate-400">Prendas físicas y mockups aprobados listos para estampar / bordar</p>
+          <p class="text-xs text-slate-400">Mockups aprobados, prendas físicas y especificaciones de estampado</p>
         </div>
         <span id="contador-taller" class="bg-blue-500/20 text-blue-400 border border-blue-500/40 text-xs px-3 py-1.5 rounded-full font-bold">0 Órdenes</span>
       </div>
 
-      <!-- GRID DE TARJETAS VISUALES DE TALLER -->
+      <!-- GRID DE TARJETAS DE TALLER -->
       <div id="grid-taller" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Tarjetas dinámicas generadas con JS -->
+        <!-- Generado dinámicamente -->
       </div>
     </section>
 
-
-    <!-- ========================================== -->
     <!-- VISTA 2: MOSTRADOR / ADMINISTRACIÓN -->
-    <!-- ========================================== -->
     <section id="vista-mostrador" class="hidden">
       <div class="flex justify-between items-center mb-6">
         <div>
@@ -77,7 +72,7 @@
         </div>
       </div>
 
-      <!-- TABLA RESUMEN ADMINISTRATIVA -->
+      <!-- TABLA RESUMEN -->
       <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-300">
@@ -86,6 +81,7 @@
                 <th class="p-3">Folio</th>
                 <th class="p-3">Cliente</th>
                 <th class="p-3">Técnica & Pedido</th>
+                <th class="p-3">Mockups</th>
                 <th class="p-3">Estatus</th>
                 <th class="p-3">Total</th>
                 <th class="p-3">Anticipo</th>
@@ -103,9 +99,7 @@
 
   </main>
 
-  <!-- ========================================== -->
   <!-- MODAL: REGISTRAR NUEVO PEDIDO -->
-  <!-- ========================================== -->
   <div id="modal-nuevo-pedido" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
@@ -117,7 +111,6 @@
 
       <form id="form-pedido" onsubmit="guardarPedido(event)" class="space-y-4 text-sm">
         
-        <!-- Fila 1: Cliente y WhatsApp -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre del Cliente *</label>
@@ -129,11 +122,10 @@
           </div>
         </div>
 
-        <!-- Fila 2: Técnica y Fecha de Entrega -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">Técnica *</label>
-            <select id="input-tecnica" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-blue-500 focus:outline-none">
+            <select id="input-tecnica" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
               <option value="DTF Textil">DTF Textil</option>
               <option value="Bordado Directo">Bordado Directo</option>
               <option value="Parche DTF / Bordado">Parche DTF / Bordado</option>
@@ -141,29 +133,31 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">Fecha Compromiso Entrega</label>
-            <input type="date" id="input-fecha-entrega" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-blue-500 focus:outline-none">
+            <input type="date" id="input-fecha-entrega" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
           </div>
         </div>
 
-        <!-- Fila 3: Prendas y Tallas -->
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1">Detalle de Prendas, Colores y Tallas *</label>
-          <textarea id="input-prendas" rows="2" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-blue-500 focus:outline-none" placeholder="Ej. 2 Oversize Mark: 1 Blanca Talla M, 1 Negra Talla M"></textarea>
+          <textarea id="input-prendas" rows="2" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. 2 Oversize Mark: 1 Blanca Talla M, 1 Negra Talla M"></textarea>
         </div>
 
-        <!-- Fila 4: Especificaciones de Ubicación y Medidas -->
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1">Ubicaciones y Medidas</label>
-          <input type="text" id="input-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-blue-500 focus:outline-none" placeholder="Ej. Frente chico 10cm pecho izq + Espalda grande 30x35cm">
+          <input type="text" id="input-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. Frente chico 10cm + Espalda grande 30x35cm">
         </div>
 
-        <!-- Fila 5: Subida de Mockup / Imagen -->
-        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700">
-          <label class="block text-xs font-semibold text-blue-400 mb-1"><i class="fa-solid fa-image"></i> Mockup Visual Aprobado (Para Taller)</label>
-          <input type="file" id="input-imagen-mockup" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+        <!-- CAMPO MULTI-IMAGEN -->
+        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700">
+          <label class="block text-xs font-semibold text-blue-400 mb-1">
+            <i class="fa-solid fa-images"></i> Subir Mockups / Fotos de Muestra (Puedes seleccionar varias)
+          </label>
+          <input type="file" id="input-imagen-mockup" multiple accept="image/*" onchange="previsualizarSubidas(this)" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+          
+          <!-- Miniaturas de previsualización -->
+          <div id="preview-container" class="flex flex-wrap gap-2 mt-3 empty:hidden"></div>
         </div>
 
-        <!-- Fila 6: Finanzas (Total y Anticipo 50%) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900 p-3 rounded-xl border border-slate-700">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">Total ($)</label>
@@ -179,7 +173,6 @@
           </div>
         </div>
 
-        <!-- Fila 7: Estatus Inicial -->
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1">Estatus Inicial</label>
           <select id="input-estatus" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-semibold">
@@ -197,10 +190,17 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT: LÓGICA DE LA APP -->
+  <!-- MODAL: VISOR DE IMAGEN EN PANTALLA COMPLETA (ZOOM TALLER) -->
+  <div id="modal-zoom" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4" onclick="cerrarZoom()">
+    <div class="relative max-w-4xl max-h-[90vh]">
+      <img id="img-zoom" src="" class="max-w-full max-h-[85vh] rounded-lg object-contain border border-slate-700 shadow-2xl">
+      <button class="absolute top-2 right-2 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold hover:bg-black">&times;</button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT -->
   <script>
-    // Base de datos local
-    let pedidos = JSON.parse(localStorage.getItem('tf_pedidos')) || [
+    let pedidos = JSON.parse(localStorage.getItem('tf_pedidos_v2')) || [
       {
         id: 'TF-042',
         cliente: 'Andrés Pérez Castro (BURNT)',
@@ -208,7 +208,10 @@
         tecnica: 'Bordado Directo',
         prendas: '6 Gorras Explosion Bazuka (3 Negras, 3 Arena)',
         ubicaciones: 'Frente: BURNT en negras / Personaje flama en arena',
-        mockupUrl: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop&q=80',
+        mockupUrls: [
+          'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1534215754734-18e55d13e346?w=600&auto=format&fit=crop&q=80'
+        ],
         estatus: 'Listo para Máquina',
         total: 1360,
         anticipo: 680,
@@ -222,7 +225,9 @@
         tecnica: 'DTF Textil',
         prendas: '2 Playeras Oversize Mark (1 Blanca M, 1 Negra M)',
         ubicaciones: 'Frente chico 10cm + Espalda grande 30x35cm',
-        mockupUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80',
+        mockupUrls: [
+          'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80'
+        ],
         estatus: 'Comprando Prendas / Preprensa',
         total: 780,
         anticipo: 390,
@@ -231,8 +236,10 @@
       }
     ];
 
+    let imagenesTemporales = [];
+
     function guardarEnStorage() {
-      localStorage.setItem('tf_pedidos', JSON.stringify(pedidos));
+      localStorage.setItem('tf_pedidos_v2', JSON.stringify(pedidos));
       renderizarVistas();
     }
 
@@ -260,12 +267,10 @@
       renderizarMostrador();
     }
 
-    // Renderizar tarjetas de producción (SOLO MOCKUPS Y TALLAS)
     function renderizarTaller() {
       const grid = document.getElementById('grid-taller');
       grid.innerHTML = '';
       
-      // Filtrar los pedidos que están listos para taller o en máquina
       const pedidosTaller = pedidos.filter(p => p.estatus === 'Listo para Máquina' || p.estatus === 'En Producción' || p.estatus === 'Comprando Prendas / Preprensa');
       document.getElementById('contador-taller').innerText = `${pedidosTaller.length} Órdenes Activas`;
 
@@ -278,9 +283,32 @@
         const card = document.createElement('div');
         card.className = 'bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl flex flex-col justify-between hover:border-blue-500/50 transition';
 
+        // Generar galería visual con soporte multi-imagen
+        let galeriaHtml = '';
+        if (p.mockupUrls && p.mockupUrls.length > 0) {
+          galeriaHtml = `
+            <div class="relative bg-black/50 p-2 flex flex-col items-center">
+              <img id="img-main-${p.id}" src="${p.mockupUrls[0]}" onclick="abrirZoom(this.src)" class="h-60 w-full object-contain rounded cursor-pointer hover:opacity-95 transition" title="Clic para ampliar">
+              
+              ${p.mockupUrls.length > 1 ? `
+                <div class="flex gap-2 mt-2 overflow-x-auto w-full py-1 justify-center">
+                  ${p.mockupUrls.map((url, idx) => `
+                    <img src="${url}" onclick="cambiarImagenPrincipal('${p.id}', '${url}')" class="h-12 w-12 object-cover rounded border-2 border-slate-600 hover:border-blue-400 cursor-pointer transition">
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        } else {
+          galeriaHtml = `
+            <div class="bg-black/40 h-52 flex items-center justify-center text-slate-500">
+              <i class="fa-regular fa-image text-3xl mb-1"></i> <span class="text-xs ml-2">Sin mockup</span>
+            </div>
+          `;
+        }
+
         card.innerHTML = `
           <div>
-            <!-- Header Tarjeta -->
             <div class="bg-slate-900 p-3.5 border-b border-slate-700 flex justify-between items-center">
               <div>
                 <span class="text-xs font-mono font-black text-blue-400">${p.id}</span>
@@ -291,19 +319,8 @@
               </span>
             </div>
 
-            <!-- CONTENEDOR DEL MOCKUP VISUAL (EN GRANDE) -->
-            <div class="relative bg-black/40 h-64 flex items-center justify-center overflow-hidden group">
-              ${p.mockupUrl ? `
-                <img src="${p.mockupUrl}" alt="Mockup" class="w-full h-full object-contain p-2 group-hover:scale-105 transition duration-300">
-              ` : `
-                <div class="text-center text-slate-500">
-                  <i class="fa-regular fa-image text-4xl mb-1"></i>
-                  <p class="text-xs">Sin imagen de mockup</p>
-                </div>
-              `}
-            </div>
+            ${galeriaHtml}
 
-            <!-- ESPECIFICACIONES TÉCNICAS -->
             <div class="p-4 space-y-2.5 text-xs">
               <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700/60">
                 <span class="text-slate-400 block font-semibold mb-0.5"><i class="fa-solid fa-shirt text-blue-400"></i> PRENDAS Y TALLAS:</span>
@@ -317,7 +334,6 @@
             </div>
           </div>
 
-          <!-- BOTÓN MARCAR TERMINADO -->
           <div class="p-4 pt-0">
             <button onclick="marcarTerminado('${p.id}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg transition">
               <i class="fa-solid fa-check"></i> Marcar Terminado
@@ -328,12 +344,16 @@
       });
     }
 
-    // Renderizar tabla completa de Mostrador
+    function cambiarImagenPrincipal(idPedido, url) {
+      document.getElementById(`img-main-${idPedido}`).src = url;
+    }
+
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
       tbody.innerHTML = '';
 
       pedidos.forEach(p => {
+        const fotosCount = (p.mockupUrls && p.mockupUrls.length) || (p.mockupUrl ? 1 : 0);
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-700/30';
         tr.innerHTML = `
@@ -345,6 +365,11 @@
           <td class="p-3">
             <span class="text-xs font-bold text-slate-300">${p.tecnica}</span>
             <div class="text-xs text-slate-400 truncate max-w-xs">${p.prendas}</div>
+          </td>
+          <td class="p-3">
+            <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-1 rounded text-slate-300">
+              <i class="fa-solid fa-image text-blue-400"></i> ${fotosCount} foto(s)
+            </span>
           </td>
           <td class="p-3">
             <select onchange="actualizarEstatus('${p.id}', this.value)" class="bg-slate-900 text-xs border border-slate-700 rounded-md p-1 text-slate-200">
@@ -366,8 +391,9 @@
       });
     }
 
-    // Modal y Formularios
     function abrirModalNuevoPedido() {
+      imagenesTemporales = [];
+      document.getElementById('preview-container').innerHTML = '';
       document.getElementById('modal-nuevo-pedido').classList.remove('hidden');
     }
     function cerrarModalNuevoPedido() {
@@ -378,56 +404,55 @@
     function calcularSaldo() {
       const total = parseFloat(document.getElementById('input-total').value) || 0;
       const anticipoInput = document.getElementById('input-anticipo');
-      
-      // Si el usuario aún no escribe anticipo, autocalcular el 50%
       if (!anticipoInput.value && total > 0) {
         anticipoInput.value = (total * 0.5).toFixed(2);
       }
-      
       const anticipo = parseFloat(anticipoInput.value) || 0;
       document.getElementById('input-saldo').value = (total - anticipo).toFixed(2);
     }
 
+    function previsualizarSubidas(input) {
+      const previewContainer = document.getElementById('preview-container');
+      previewContainer.innerHTML = '';
+      imagenesTemporales = [];
+
+      if (input.files) {
+        Array.from(input.files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            imagenesTemporales.push(e.target.result);
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'w-14 h-14 object-cover rounded-lg border border-slate-600 shadow';
+            previewContainer.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    }
+
     function guardarPedido(e) {
       e.preventDefault();
-
-      const fileInput = document.getElementById('input-imagen-mockup');
       const nuevoId = 'TF-' + (Math.floor(100 + Math.random() * 900));
 
-      const cliente = document.getElementById('input-cliente').value;
-      const telefono = document.getElementById('input-telefono').value;
-      const tecnica = document.getElementById('input-tecnica').value;
-      const fechaEntrega = document.getElementById('input-fecha-entrega').value;
-      const prendas = document.getElementById('input-prendas').value;
-      const ubicaciones = document.getElementById('input-ubicaciones').value;
-      const total = parseFloat(document.getElementById('input-total').value) || 0;
-      const anticipo = parseFloat(document.getElementById('input-anticipo').value) || 0;
-      const saldo = parseFloat(document.getElementById('input-saldo').value) || 0;
-      const estatus = document.getElementById('input-estatus').value;
+      const nuevoPedido = {
+        id: nuevoId,
+        cliente: document.getElementById('input-cliente').value,
+        telefono: document.getElementById('input-telefono').value,
+        tecnica: document.getElementById('input-tecnica').value,
+        fechaEntrega: document.getElementById('input-fecha-entrega').value,
+        prendas: document.getElementById('input-prendas').value,
+        ubicaciones: document.getElementById('input-ubicaciones').value,
+        mockupUrls: imagenesTemporales.length > 0 ? [...imagenesTemporales] : [],
+        total: parseFloat(document.getElementById('input-total').value) || 0,
+        anticipo: parseFloat(document.getElementById('input-anticipo').value) || 0,
+        saldo: parseFloat(document.getElementById('input-saldo').value) || 0,
+        estatus: document.getElementById('input-estatus').value
+      };
 
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          pedidos.unshift({
-            id: nuevoId,
-            cliente, telefono, tecnica, fechaEntrega, prendas, ubicaciones,
-            mockupUrl: event.target.result,
-            total, anticipo, saldo, estatus
-          });
-          guardarEnStorage();
-          cerrarModalNuevoPedido();
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else {
-        pedidos.unshift({
-          id: nuevoId,
-          cliente, telefono, tecnica, fechaEntrega, prendas, ubicaciones,
-          mockupUrl: '',
-          total, anticipo, saldo, estatus
-        });
-        guardarEnStorage();
-        cerrarModalNuevoPedido();
-      }
+      pedidos.unshift(nuevoPedido);
+      guardarEnStorage();
+      cerrarModalNuevoPedido();
     }
 
     function marcarTerminado(id) {
@@ -453,7 +478,14 @@
       }
     }
 
-    // Inicio
+    function abrirZoom(url) {
+      document.getElementById('img-zoom').src = url;
+      document.getElementById('modal-zoom').classList.remove('hidden');
+    }
+    function cerrarZoom() {
+      document.getElementById('modal-zoom').classList.add('hidden');
+    }
+
     renderizarVistas();
   </script>
 </body>
