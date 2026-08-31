@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tinta Fuerte - Sistema de Producción</title>
+  <title>Tinta Fuerte - Control de Producción</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -12,67 +12,63 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
 
-  <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
+  <!-- HEADER -->
   <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-30 px-4 py-3 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-3">
         <div class="bg-blue-600 text-white p-2 rounded-lg font-black text-xl tracking-wider shadow">TF</div>
         <div>
           <h1 class="font-bold text-lg leading-tight text-white">TINTA FUERTE</h1>
-          <p class="text-xs text-slate-400">Control de Producción & Multi-Mockups</p>
+          <p class="text-xs text-slate-400">Control de Producción & Mockups</p>
         </div>
       </div>
 
-      <!-- SELECTOR DE VISTAS -->
+      <!-- TABS -->
       <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700 text-sm">
         <button id="btn-tab-taller" onclick="cambiarVista('taller')" class="px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow">
-          <i class="fa-solid fa-industry"></i> Vista Taller (Producción)
+          <i class="fa-solid fa-industry"></i> Vista Taller
         </button>
         <button id="btn-tab-mostrador" onclick="cambiarVista('mostrador')" class="px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 text-slate-400 hover:text-white">
-          <i class="fa-solid fa-cash-register"></i> Vista Mostrador (Admin)
+          <i class="fa-solid fa-cash-register"></i> Mostrador & Admin
         </button>
       </div>
 
-      <!-- BOTÓN AGREGAR PEDIDO -->
+      <!-- BOTÓN AGREGAR -->
       <button onclick="abrirModalNuevoPedido()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow transition">
         <i class="fa-solid fa-plus"></i> Nuevo Pedido
       </button>
     </div>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL -->
+  <!-- MAIN -->
   <main class="max-w-7xl mx-auto p-4 md:p-6">
 
-    <!-- VISTA 1: TALLER / PRODUCCIÓN (SOLO MOCKUPS Y TALLAS) -->
+    <!-- VISTA TALLER -->
     <section id="vista-taller">
       <div class="flex justify-between items-center mb-6">
         <div>
           <h2 class="text-2xl font-black tracking-wide text-blue-400 flex items-center gap-2">
-            <i class="fa-solid fa-scissors"></i> ÓRDENES ACTIVAS EN MÁQUINA
+            <i class="fa-solid fa-scissors"></i> ÓRDENES ACTIVAS EN TALLER
           </h2>
-          <p class="text-xs text-slate-400">Mockups aprobados, prendas físicas y especificaciones de estampado</p>
+          <p class="text-xs text-slate-400">Mockups aprobados y prendas listas para máquina</p>
         </div>
         <span id="contador-taller" class="bg-blue-500/20 text-blue-400 border border-blue-500/40 text-xs px-3 py-1.5 rounded-full font-bold">0 Órdenes</span>
       </div>
 
-      <!-- GRID DE TARJETAS DE TALLER -->
-      <div id="grid-taller" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Generado dinámicamente -->
-      </div>
+      <div id="grid-taller" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
-    <!-- VISTA 2: MOSTRADOR / ADMINISTRACIÓN -->
+    <!-- VISTA MOSTRADOR -->
     <section id="vista-mostrador" class="hidden">
       <div class="flex justify-between items-center mb-6">
         <div>
           <h2 class="text-2xl font-black tracking-wide text-slate-200 flex items-center gap-2">
-            <i class="fa-solid fa-table-list"></i> CONTROL GENERAL Y FINANZAS
+            <i class="fa-solid fa-table-list"></i> CONTROL GENERAL DE PEDIDOS
           </h2>
-          <p class="text-xs text-slate-400">Seguimiento de anticipos, compras de stock y aprobación de muestras</p>
+          <p class="text-xs text-slate-400">Seguimiento comercial, entregas parciales y saldos</p>
         </div>
       </div>
 
-      <!-- TABLA RESUMEN -->
       <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-slate-300">
@@ -80,18 +76,15 @@
               <tr>
                 <th class="p-3">Folio</th>
                 <th class="p-3">Cliente</th>
-                <th class="p-3">Técnica & Pedido</th>
-                <th class="p-3">Mockups</th>
+                <th class="p-3">Técnica & Prendas Listas</th>
+                <th class="p-3">Pendientes Stock</th>
                 <th class="p-3">Estatus</th>
                 <th class="p-3">Total</th>
-                <th class="p-3">Anticipo</th>
                 <th class="p-3">Saldo</th>
                 <th class="p-3 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody id="tabla-mostrador-body" class="divide-y divide-slate-700/60">
-              <!-- Filas dinámicas -->
-            </tbody>
+            <tbody id="tabla-mostrador-body" class="divide-y divide-slate-700/60"></tbody>
           </table>
         </div>
       </div>
@@ -99,26 +92,25 @@
 
   </main>
 
-  <!-- MODAL: REGISTRAR NUEVO PEDIDO -->
+  <!-- MODAL: NUEVO PEDIDO -->
   <div id="modal-nuevo-pedido" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
         <h3 class="text-lg font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-cart-flatbed text-emerald-400"></i> Registrar Pedido con Anticipo (50%)
+          <i class="fa-solid fa-cart-flatbed text-emerald-400"></i> Registrar Pedido
         </h3>
         <button onclick="cerrarModalNuevoPedido()" class="text-slate-400 hover:text-white text-xl">&times;</button>
       </div>
 
       <form id="form-pedido" onsubmit="guardarPedido(event)" class="space-y-4 text-sm">
-        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre del Cliente *</label>
-            <input type="text" id="input-cliente" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-blue-500 focus:outline-none" placeholder="Ej. Bryan Chaidez">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Cliente *</label>
+            <input type="text" id="input-cliente" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. Bryan Chaidez">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">WhatsApp / Teléfono</label>
-            <input type="text" id="input-telefono" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:border-blue-500 focus:outline-none" placeholder="667...">
+            <input type="text" id="input-telefono" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="667...">
           </div>
         </div>
 
@@ -132,14 +124,25 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Fecha Compromiso Entrega</label>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Fecha Entrega</label>
             <input type="date" id="input-fecha-entrega" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Detalle de Prendas, Colores y Tallas *</label>
-          <textarea id="input-prendas" rows="2" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. 2 Oversize Mark: 1 Blanca Talla M, 1 Negra Talla M"></textarea>
+        <!-- SECCIÓN DE PRENDAS DIVIDIDAS (LISTAS VS PENDIENTES DE STOCK) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-700">
+          <div>
+            <label class="block text-xs font-semibold text-emerald-400 mb-1">
+              <i class="fa-solid fa-check"></i> Prendas Listas en Taller para Procesar *
+            </label>
+            <textarea id="input-prendas-listas" rows="2" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" placeholder="Ej. 1 Oversize Mark Blanca M"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-amber-400 mb-1">
+              <i class="fa-solid fa-clock"></i> Prendas Pendientes de Comprar / Proveedor
+            </label>
+            <textarea id="input-prendas-pendientes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white" placeholder="Ej. 1 Oversize Mark Negra M (Falta con proveedor)"></textarea>
+          </div>
         </div>
 
         <div>
@@ -147,50 +150,49 @@
           <input type="text" id="input-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. Frente chico 10cm + Espalda grande 30x35cm">
         </div>
 
-        <!-- CAMPO MULTI-IMAGEN -->
-        <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700">
+        <!-- MULTI IMAGEN -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
           <label class="block text-xs font-semibold text-blue-400 mb-1">
-            <i class="fa-solid fa-images"></i> Subir Mockups / Fotos de Muestra (Puedes seleccionar varias)
+            <i class="fa-solid fa-images"></i> Subir Mockups / Pruebas (Multi-archivo)
           </label>
-          <input type="file" id="input-imagen-mockup" multiple accept="image/*" onchange="previsualizarSubidas(this)" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
-          
-          <!-- Miniaturas de previsualización -->
+          <input type="file" id="input-imagen-mockup" multiple accept="image/*" onchange="previsualizarSubidas(this)" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white cursor-pointer">
           <div id="preview-container" class="flex flex-wrap gap-2 mt-3 empty:hidden"></div>
         </div>
 
+        <!-- FINANZAS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900 p-3 rounded-xl border border-slate-700">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">Total ($)</label>
             <input type="number" id="input-total" oninput="calcularSaldo()" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-emerald-400 mb-1">Anticipo (50%)</label>
+            <label class="block text-xs font-semibold text-emerald-400 mb-1">Anticipo ($)</label>
             <input type="number" id="input-anticipo" oninput="calcularSaldo()" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-emerald-400 font-bold" placeholder="0.00">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-rose-400 mb-1">Saldo Restante</label>
+            <label class="block text-xs font-semibold text-rose-400 mb-1">Saldo</label>
             <input type="number" id="input-saldo" readonly class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2 text-rose-400 font-bold" placeholder="0.00">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Estatus Inicial</label>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Estatus del Pedido</label>
           <select id="input-estatus" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-semibold">
-            <option value="Comprando Prendas / Preprensa">🟡 Comprando Prendas / Preprensa</option>
-            <option value="Muestra por Aprobar">🟠 Muestra por Aprobar (Esperando Cliente)</option>
-            <option value="Listo para Máquina">🔵 Listo para Máquina (Pasa a Taller)</option>
+            <option value="Listo para Máquina">🔵 Listo para Máquina (Completo)</option>
+            <option value="Parcialmente en Producción">🟡 Parcialmente en Producción (Hacer solo lo disponible)</option>
+            <option value="Comprando Prendas / Preprensa">🟠 Esperando Prendas / Muestra</option>
           </select>
         </div>
 
         <div class="flex justify-end gap-3 pt-3 border-t border-slate-700">
           <button type="button" onclick="cerrarModalNuevoPedido()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white">Cancelar</button>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2 rounded-lg shadow">Guardar Pedido</button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2 rounded-lg shadow">Guardar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: VISOR DE IMAGEN EN PANTALLA COMPLETA (ZOOM TALLER) -->
+  <!-- ZOOM MODAL -->
   <div id="modal-zoom" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4" onclick="cerrarZoom()">
     <div class="relative max-w-4xl max-h-[90vh]">
       <img id="img-zoom" src="" class="max-w-full max-h-[85vh] rounded-lg object-contain border border-slate-700 shadow-2xl">
@@ -198,48 +200,44 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT -->
   <script>
-    let pedidos = JSON.parse(localStorage.getItem('tf_pedidos_v2')) || [
-      {
-        id: 'TF-042',
-        cliente: 'Andrés Pérez Castro (BURNT)',
-        telefono: '6671234567',
-        tecnica: 'Bordado Directo',
-        prendas: '6 Gorras Explosion Bazuka (3 Negras, 3 Arena)',
-        ubicaciones: 'Frente: BURNT en negras / Personaje flama en arena',
-        mockupUrls: [
-          'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1534215754734-18e55d13e346?w=600&auto=format&fit=crop&q=80'
-        ],
-        estatus: 'Listo para Máquina',
-        total: 1360,
-        anticipo: 680,
-        saldo: 680,
-        fechaEntrega: '2026-09-01'
-      },
+    let pedidos = JSON.parse(localStorage.getItem('tf_pedidos_v3')) || [
       {
         id: 'TF-043',
         cliente: 'Bryan Chaidez',
         telefono: '6679876543',
         tecnica: 'DTF Textil',
-        prendas: '2 Playeras Oversize Mark (1 Blanca M, 1 Negra M)',
+        prendasListas: '1 Playera Oversize Mark Blanca Talla M',
+        prendasPendientes: '1 Playera Oversize Mark Negra Talla M (Falta comprar con proveedor)',
         ubicaciones: 'Frente chico 10cm + Espalda grande 30x35cm',
-        mockupUrls: [
-          'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80'
-        ],
-        estatus: 'Comprando Prendas / Preprensa',
+        mockupUrls: ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80'],
+        estatus: 'Parcialmente en Producción',
         total: 780,
         anticipo: 390,
         saldo: 390,
         fechaEntrega: '2026-09-03'
+      },
+      {
+        id: 'TF-042',
+        cliente: 'Andrés Pérez Castro (BURNT)',
+        telefono: '6671234567',
+        tecnica: 'Bordado Directo',
+        prendasListas: '6 Gorras Explosion Bazuka (3 Negras, 3 Arena)',
+        prendasPendientes: '',
+        ubicaciones: 'Frente: BURNT en negras / Personaje flama en arena',
+        mockupUrls: ['https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop&q=80'],
+        estatus: 'Listo para Máquina',
+        total: 1360,
+        anticipo: 680,
+        saldo: 680,
+        fechaEntrega: '2026-09-01'
       }
     ];
 
     let imagenesTemporales = [];
 
     function guardarEnStorage() {
-      localStorage.setItem('tf_pedidos_v2', JSON.stringify(pedidos));
+      localStorage.setItem('tf_pedidos_v3', JSON.stringify(pedidos));
       renderizarVistas();
     }
 
@@ -271,38 +269,36 @@
       const grid = document.getElementById('grid-taller');
       grid.innerHTML = '';
       
-      const pedidosTaller = pedidos.filter(p => p.estatus === 'Listo para Máquina' || p.estatus === 'En Producción' || p.estatus === 'Comprando Prendas / Preprensa');
+      const pedidosTaller = pedidos.filter(p => 
+        p.estatus === 'Listo para Máquina' || 
+        p.estatus === 'Parcialmente en Producción' || 
+        p.estatus === 'En Producción'
+      );
+
       document.getElementById('contador-taller').innerText = `${pedidosTaller.length} Órdenes Activas`;
 
       if (pedidosTaller.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 font-medium"><i class="fa-solid fa-check-circle text-4xl mb-2 text-slate-600"></i><br>No hay órdenes pendientes en máquina</div>';
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500 font-medium"><i class="fa-solid fa-check-circle text-4xl mb-2 text-slate-600"></i><br>No hay órdenes en máquina</div>';
         return;
       }
 
       pedidosTaller.forEach(p => {
+        const esParcial = p.estatus === 'Parcialmente en Producción' || (p.prendasPendientes && p.prendasPendientes.trim() !== '');
         const card = document.createElement('div');
-        card.className = 'bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl flex flex-col justify-between hover:border-blue-500/50 transition';
+        card.className = `bg-slate-800 rounded-2xl border ${esParcial ? 'border-amber-500/70' : 'border-slate-700'} overflow-hidden shadow-xl flex flex-col justify-between hover:border-blue-500/50 transition`;
 
-        // Generar galería visual con soporte multi-imagen
         let galeriaHtml = '';
         if (p.mockupUrls && p.mockupUrls.length > 0) {
           galeriaHtml = `
             <div class="relative bg-black/50 p-2 flex flex-col items-center">
-              <img id="img-main-${p.id}" src="${p.mockupUrls[0]}" onclick="abrirZoom(this.src)" class="h-60 w-full object-contain rounded cursor-pointer hover:opacity-95 transition" title="Clic para ampliar">
-              
+              <img id="img-main-${p.id}" src="${p.mockupUrls[0]}" onclick="abrirZoom(this.src)" class="h-56 w-full object-contain rounded cursor-pointer hover:opacity-95 transition" title="Clic para ampliar">
               ${p.mockupUrls.length > 1 ? `
                 <div class="flex gap-2 mt-2 overflow-x-auto w-full py-1 justify-center">
-                  ${p.mockupUrls.map((url, idx) => `
-                    <img src="${url}" onclick="cambiarImagenPrincipal('${p.id}', '${url}')" class="h-12 w-12 object-cover rounded border-2 border-slate-600 hover:border-blue-400 cursor-pointer transition">
+                  ${p.mockupUrls.map(url => `
+                    <img src="${url}" onclick="cambiarImagenPrincipal('${p.id}', '${url}')" class="h-10 w-10 object-cover rounded border-2 border-slate-600 hover:border-blue-400 cursor-pointer">
                   `).join('')}
                 </div>
               ` : ''}
-            </div>
-          `;
-        } else {
-          galeriaHtml = `
-            <div class="bg-black/40 h-52 flex items-center justify-center text-slate-500">
-              <i class="fa-regular fa-image text-3xl mb-1"></i> <span class="text-xs ml-2">Sin mockup</span>
             </div>
           `;
         }
@@ -314,29 +310,38 @@
                 <span class="text-xs font-mono font-black text-blue-400">${p.id}</span>
                 <h3 class="font-bold text-white text-base leading-tight">${p.cliente}</h3>
               </div>
-              <span class="text-xs px-2.5 py-1 rounded-md font-bold bg-slate-800 border border-slate-700 text-slate-300">
-                ${p.tecnica}
+              <span class="text-xs px-2 py-1 rounded-md font-bold ${esParcial ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-slate-800 text-slate-300'}">
+                ${esParcial ? '⚠️ LOTE PARCIAL' : p.tecnica}
               </span>
             </div>
 
             ${galeriaHtml}
 
             <div class="p-4 space-y-2.5 text-xs">
-              <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700/60">
-                <span class="text-slate-400 block font-semibold mb-0.5"><i class="fa-solid fa-shirt text-blue-400"></i> PRENDAS Y TALLAS:</span>
-                <p class="text-white font-medium text-sm leading-snug">${p.prendas}</p>
+              <!-- PRENDAS LISTAS -->
+              <div class="bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-500/40">
+                <span class="text-emerald-400 block font-bold mb-0.5"><i class="fa-solid fa-play"></i> HACER EN MÁQUINA AHORA:</span>
+                <p class="text-white font-semibold text-sm leading-snug">${p.prendasListas}</p>
               </div>
 
-              <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700/60">
-                <span class="text-slate-400 block font-semibold mb-0.5"><i class="fa-solid fa-ruler-combined text-amber-400"></i> UBICACIÓN Y MEDIDAS:</span>
-                <p class="text-slate-200 font-medium leading-snug">${p.ubicaciones || 'Estándar según mockup'}</p>
+              <!-- PRENDAS PENDIENTES SI APLICA -->
+              ${p.prendasPendientes && p.prendasPendientes.trim() !== '' ? `
+                <div class="bg-amber-950/40 p-2.5 rounded-lg border border-amber-500/40">
+                  <span class="text-amber-400 block font-bold mb-0.5"><i class="fa-solid fa-pause"></i> NO HACER / PENDIENTE PROVEEDOR:</span>
+                  <p class="text-slate-300 font-medium leading-snug">${p.prendasPendientes}</p>
+                </div>
+              ` : ''}
+
+              <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-700/60">
+                <span class="text-slate-400 block font-semibold mb-0.5"><i class="fa-solid fa-ruler-combined text-blue-400"></i> UBICACIÓN:</span>
+                <p class="text-slate-200">${p.ubicaciones || 'Ver mockup'}</p>
               </div>
             </div>
           </div>
 
           <div class="p-4 pt-0">
             <button onclick="marcarTerminado('${p.id}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg transition">
-              <i class="fa-solid fa-check"></i> Marcar Terminado
+              <i class="fa-solid fa-check"></i> ${esParcial ? 'Terminar Lote Listo' : 'Marcar Todo Terminado'}
             </button>
           </div>
         `;
@@ -353,7 +358,6 @@
       tbody.innerHTML = '';
 
       pedidos.forEach(p => {
-        const fotosCount = (p.mockupUrls && p.mockupUrls.length) || (p.mockupUrl ? 1 : 0);
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-700/30';
         tr.innerHTML = `
@@ -363,28 +367,25 @@
             <div class="text-xs text-slate-400">${p.telefono || 'Sin tel'}</div>
           </td>
           <td class="p-3">
-            <span class="text-xs font-bold text-slate-300">${p.tecnica}</span>
-            <div class="text-xs text-slate-400 truncate max-w-xs">${p.prendas}</div>
+            <span class="text-xs font-bold text-emerald-400">${p.tecnica}</span>
+            <div class="text-xs text-white font-medium truncate max-w-xs">${p.prendasListas}</div>
           </td>
           <td class="p-3">
-            <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-1 rounded text-slate-300">
-              <i class="fa-solid fa-image text-blue-400"></i> ${fotosCount} foto(s)
-            </span>
+            <div class="text-xs text-amber-400 truncate max-w-xs">${p.prendasPendientes || '— Todo en orden'}</div>
           </td>
           <td class="p-3">
             <select onchange="actualizarEstatus('${p.id}', this.value)" class="bg-slate-900 text-xs border border-slate-700 rounded-md p-1 text-slate-200">
-              <option value="Comprando Prendas / Preprensa" ${p.estatus === 'Comprando Prendas / Preprensa' ? 'selected' : ''}>🟡 Preprensa / Stock</option>
-              <option value="Muestra por Aprobar" ${p.estatus === 'Muestra por Aprobar' ? 'selected' : ''}>🟠 Muestra por Aprobar</option>
               <option value="Listo para Máquina" ${p.estatus === 'Listo para Máquina' ? 'selected' : ''}>🔵 Listo para Máquina</option>
-              <option value="Terminado / Por Liquidar" ${p.estatus === 'Terminado / Por Liquidar' ? 'selected' : ''}>🟢 Terminado</option>
-              <option value="Entregado y Cerrado" ${p.estatus === 'Entregado y Cerrado' ? 'selected' : ''}>⚫ Entregado</option>
+              <option value="Parcialmente en Producción" ${p.estatus === 'Parcialmente en Producción' ? 'selected' : ''}>🟡 Parcialmente en Producción</option>
+              <option value="Comprando Prendas / Preprensa" ${p.estatus === 'Comprando Prendas / Preprensa' ? 'selected' : ''}>🟠 Esperando Prendas</option>
+              <option value="Terminado / Por Liquidar" ${p.estatus === 'Terminado / Por Liquidar' ? 'selected' : ''}>🟢 Terminado / En Tienda</option>
+              <option value="Entregado y Cerrado" ${p.estatus === 'Entregado y Cerrado' ? 'selected' : ''}>⚫ Entregado y Cerrado</option>
             </select>
           </td>
           <td class="p-3 font-bold text-slate-200">$${p.total}</td>
-          <td class="p-3 font-bold text-emerald-400">$${p.anticipo}</td>
           <td class="p-3 font-bold text-rose-400">$${p.saldo}</td>
           <td class="p-3 text-center">
-            <button onclick="eliminarPedido('${p.id}')" class="text-rose-400 hover:text-rose-300 p-1.5" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+            <button onclick="eliminarPedido('${p.id}')" class="text-rose-400 hover:text-rose-300 p-1.5"><i class="fa-solid fa-trash"></i></button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -423,7 +424,7 @@
             imagenesTemporales.push(e.target.result);
             const img = document.createElement('img');
             img.src = e.target.result;
-            img.className = 'w-14 h-14 object-cover rounded-lg border border-slate-600 shadow';
+            img.className = 'w-14 h-14 object-cover rounded-lg border border-slate-600';
             previewContainer.appendChild(img);
           };
           reader.readAsDataURL(file);
@@ -441,7 +442,8 @@
         telefono: document.getElementById('input-telefono').value,
         tecnica: document.getElementById('input-tecnica').value,
         fechaEntrega: document.getElementById('input-fecha-entrega').value,
-        prendas: document.getElementById('input-prendas').value,
+        prendasListas: document.getElementById('input-prendas-listas').value,
+        prendasPendientes: document.getElementById('input-prendas-pendientes').value,
         ubicaciones: document.getElementById('input-ubicaciones').value,
         mockupUrls: imagenesTemporales.length > 0 ? [...imagenesTemporales] : [],
         total: parseFloat(document.getElementById('input-total').value) || 0,
