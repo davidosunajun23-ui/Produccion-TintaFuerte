@@ -8,26 +8,34 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .modal-backdrop { background-color: rgba(0,0,0,0.8); }
-    
-    /* ESTILOS EXCLUSIVOS PARA IMPRESIÓN (HOJA DE TALLER) */
+
+    /* ESTILOS DE IMPRESIÓN CORREGIDOS (ELIMINA HOJAS VACÍAS) */
     @media print {
-      body * { visibility: hidden; }
-      #area-impresion, #area-impresion * { visibility: visible; }
-      #area-impresion {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        color: #000 !important;
+      @page {
+        size: auto;
+        margin: 8mm 10mm;
+      }
+      html, body {
         background: #fff !important;
+        color: #000 !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      header, main, #modal-nuevo-pedido, #modal-gestionar-prendas, #modal-zoom {
+        display: none !important;
+      }
+      #area-impresion {
         display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
     }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
 
-  <!-- BARRA SUPERIOR -->
+  <!-- HEADER -->
   <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-30 px-4 py-3 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-3">
@@ -38,7 +46,7 @@
         </div>
       </div>
 
-      <!-- SELECTOR DE PESTAÑAS -->
+      <!-- TABS -->
       <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700 text-sm">
         <button id="btn-tab-taller" onclick="cambiarVista('taller')" class="px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow">
           <i class="fa-solid fa-industry"></i> Vista Taller (Producción)
@@ -58,14 +66,14 @@
   <!-- CONTENEDOR PRINCIPAL -->
   <main class="max-w-7xl mx-auto p-4 md:p-6">
 
-    <!-- VISTA 1: TALLER (SOLO MOCKUPS Y TALLAS) -->
+    <!-- VISTA TALLER -->
     <section id="vista-taller">
       <div class="flex justify-between items-center mb-6">
         <div>
           <h2 class="text-2xl font-black tracking-wide text-blue-400 flex items-center gap-2">
             <i class="fa-solid fa-scissors"></i> ÓRDENES ACTIVAS EN MÁQUINA
           </h2>
-          <p class="text-xs text-slate-400">Visualización limpia para operadores: Mockups, tallas y alertas de stock</p>
+          <p class="text-xs text-slate-400">Mockups aprobados, prendas físicas y alertas de taller</p>
         </div>
         <span id="contador-taller" class="bg-blue-500/20 text-blue-400 border border-blue-500/40 text-xs px-3 py-1.5 rounded-full font-bold">0 Órdenes</span>
       </div>
@@ -73,14 +81,14 @@
       <div id="grid-taller" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
-    <!-- VISTA 2: MOSTRADOR / ADMINISTRACIÓN -->
+    <!-- VISTA MOSTRADOR -->
     <section id="vista-mostrador" class="hidden">
       <div class="flex justify-between items-center mb-6">
         <div>
           <h2 class="text-2xl font-black tracking-wide text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-table-list"></i> CONTROL GENERAL Y FINANZAS
           </h2>
-          <p class="text-xs text-slate-400">Control de anticipos, gestión de prendas faltantes y entrega</p>
+          <p class="text-xs text-slate-400">Seguimiento de anticipos, compras de stock y aprobación de muestras</p>
         </div>
       </div>
 
@@ -107,9 +115,7 @@
 
   </main>
 
-  <!-- ========================================== -->
-  <!-- MODAL: REGISTRAR NUEVO PEDIDO (CAPTURA RÁPIDA) -->
-  <!-- ========================================== -->
+  <!-- MODAL NUEVO PEDIDO -->
   <div id="modal-nuevo-pedido" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
@@ -120,7 +126,6 @@
       </div>
 
       <form id="form-pedido" onsubmit="guardarPedido(event)" class="space-y-4 text-sm">
-        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre del Cliente *</label>
@@ -147,7 +152,6 @@
           </div>
         </div>
 
-        <!-- UN SOLO CAMPO LIMPIO DE PRENDAS -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">
             <i class="fa-solid fa-shirt text-blue-400"></i> Detalle Completo de Prendas y Tallas *
@@ -160,7 +164,7 @@
           <input type="text" id="input-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. Frente chico 10cm + Espalda grande 30x35cm">
         </div>
 
-        <!-- SUBIR MOCKUPS (MULTI-IMAGEN) -->
+        <!-- MULTI IMÁGENES -->
         <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700">
           <label class="block text-xs font-semibold text-blue-400 mb-1">
             <i class="fa-solid fa-images"></i> Subir Mockups / Pruebas de Bordado (Selección múltiple)
@@ -193,9 +197,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL: GESTIONAR PRENDAS / LOTE PENDIENTE -->
-  <!-- ========================================== -->
+  <!-- MODAL GESTIONAR PRENDAS -->
   <div id="modal-gestionar-prendas" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
@@ -210,7 +212,6 @@
 
       <div class="space-y-4 text-sm">
         <input type="hidden" id="modal-gestionar-id">
-        
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">Prendas Totales del Pedido:</label>
           <div id="modal-gestionar-total-prendas" class="p-3 bg-slate-900 rounded-lg text-slate-200 text-xs leading-relaxed border border-slate-700"></div>
@@ -218,66 +219,69 @@
 
         <div class="space-y-2">
           <label class="block text-xs font-semibold text-amber-300">
-            ¿Hay alguna prenda pendiente de conseguir con el proveedor?
+            ¿Hay prendas pendientes con el proveedor?
           </label>
           <textarea id="modal-gestionar-input-pendientes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white text-xs" placeholder="Ej. Falta conseguir 1 Negra M con proveedor (Dejar vacío si ya llegaron todas)"></textarea>
-          <p class="text-[11px] text-slate-400">💡 Si dejas este campo vacío, la orden se marcará como <strong>100% Completa</strong> para taller.</p>
+          <p class="text-[11px] text-slate-400">💡 Al vaciar este campo, la orden se actualiza automáticamente como <strong>100% Completa</strong> para taller.</p>
         </div>
 
         <div class="flex justify-end gap-3 pt-3 border-t border-slate-700">
           <button onclick="cerrarModalGestionar()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white">Cancelar</button>
-          <button onclick="guardarGestionPrendas()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-5 py-2 rounded-lg shadow">Guardar Estado de Stock</button>
+          <button onclick="guardarGestionPrendas()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-5 py-2 rounded-lg shadow">Guardar Estado</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ========================================== -->
-  <!-- CONTENEDOR OCULTO PARA IMPRESIÓN (HOJA DE TALLER) -->
+  <!-- ÁREA DE IMPRESIÓN COMPACTA (UNA SOLA HOJA) -->
   <!-- ========================================== -->
-  <div id="area-impresion" class="hidden p-8 font-sans text-black">
-    <div class="border-b-2 border-black pb-4 mb-4 flex justify-between items-start">
+  <div id="area-impresion" class="hidden">
+    <div class="border-b-2 border-black pb-2 mb-3 flex justify-between items-start">
       <div>
-        <h1 class="text-2xl font-black tracking-wider">TINTA FUERTE — ORDEN DE TALLER</h1>
-        <p class="text-sm font-semibold text-gray-700">Hoja de Producción y Control de Calidad</p>
+        <h1 class="text-xl font-black tracking-wider">TINTA FUERTE — ORDEN DE TALLER</h1>
+        <p class="text-xs font-semibold text-gray-700">Hoja de Producción y Control de Calidad</p>
       </div>
       <div class="text-right">
-        <div id="print-folio" class="text-xl font-mono font-black">TF-000</div>
-        <div id="print-fecha" class="text-xs font-bold text-gray-600">Fecha: --/--/----</div>
+        <div id="print-folio" class="text-lg font-mono font-black">TF-000</div>
+        <div id="print-fecha" class="text-[11px] font-bold text-gray-600">Entrega: --/--/----</div>
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-4 text-xs">
-      <div class="border p-2.5 rounded">
+    <div class="grid grid-cols-2 gap-3 mb-3 text-[11px]">
+      <div class="border border-gray-400 p-2 rounded">
         <strong>CLIENTE:</strong> <span id="print-cliente"></span><br>
         <strong>TÉCNICA:</strong> <span id="print-tecnica" class="font-bold"></span>
       </div>
-      <div class="border p-2.5 rounded">
+      <div class="border border-gray-400 p-2 rounded">
         <strong>ENTREGA COMPROMISO:</strong> <span id="print-entrega" class="font-bold"></span><br>
         <strong>ESTADO DE STOCK:</strong> <span id="print-stock-status"></span>
       </div>
     </div>
 
-    <!-- IMAGEN DEL MOCKUP IMPRESA -->
-    <div class="border-2 border-dashed border-gray-400 rounded-lg p-2 text-center mb-4 flex items-center justify-center min-h-[260px] max-h-[340px] overflow-hidden">
-      <img id="print-mockup" src="" class="max-h-[320px] object-contain mx-auto">
+    <!-- CONTENEDOR MULTI-MOCKUP EN IMPRESIÓN -->
+    <div class="border border-dashed border-gray-400 rounded-lg p-2 mb-3">
+      <div class="text-[10px] font-bold uppercase text-gray-500 mb-1">MOCKUP(S) VISUALES APROBADOS:</div>
+      <div id="print-mockups-container" class="flex flex-wrap gap-2 justify-center items-center">
+        <!-- Imágenes dinámicas -->
+      </div>
     </div>
 
-    <div class="space-y-3 text-xs mb-6">
-      <div class="border p-2.5 rounded bg-gray-50">
-        <strong class="block mb-1">PRENDAS A PROCESAR EN MÁQUINA:</strong>
-        <p id="print-prendas" class="text-sm font-semibold"></p>
+    <div class="space-y-2 text-[11px] mb-3">
+      <div class="border border-gray-400 p-2 rounded bg-gray-50">
+        <strong class="block text-[10px] text-gray-600 mb-0.5">PRENDAS A PROCESAR EN MÁQUINA:</strong>
+        <p id="print-prendas" class="text-xs font-bold"></p>
       </div>
-      <div class="border p-2.5 rounded">
-        <strong class="block mb-1">UBICACIONES Y MEDIDAS:</strong>
-        <p id="print-ubicaciones"></p>
+      <div class="border border-gray-400 p-2 rounded">
+        <strong class="block text-[10px] text-gray-600 mb-0.5">UBICACIONES Y MEDIDAS:</strong>
+        <p id="print-ubicaciones" class="font-medium"></p>
       </div>
     </div>
 
     <!-- CHECKLIST DE CALIDAD MANUAL -->
-    <div class="border-t-2 border-black pt-3">
-      <strong class="text-xs block mb-2">CONTROL DE CALIDAD EN MESA (MARCAR A MANO):</strong>
-      <div class="grid grid-cols-4 gap-2 text-xs">
+    <div class="border-t border-black pt-2 text-[10px]">
+      <strong class="block mb-1">CONTROL DE CALIDAD EN MESA (MARCAR A MANO):</strong>
+      <div class="grid grid-cols-4 gap-2">
         <div>[ &nbsp; ] Tallas completas</div>
         <div>[ &nbsp; ] Estampado/Bordado OK</div>
         <div>[ &nbsp; ] Limpieza de hilos</div>
@@ -294,7 +298,7 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT -->
   <script>
     let pedidos = JSON.parse(localStorage.getItem('tf_pedidos_v4')) || [
       {
@@ -302,10 +306,13 @@
         cliente: 'Bryan Chaidez',
         telefono: '6679876543',
         tecnica: 'DTF Textil',
-        prendas: '2 Playeras Oversize Mark (1 Blanca Talla M, 1 Negra Talla M)',
+        prendas: '2 Oversize Mark (1 Blanca Talla M, 1 Negra Talla M)',
         prendasPendientes: 'Falta comprar 1 Negra Talla M con proveedor',
         ubicaciones: 'Frente chico 10cm + Espalda grande 30x35cm',
-        mockupUrls: ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80'],
+        mockupUrls: [
+          'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600&auto=format&fit=crop&q=80'
+        ],
         estatus: 'Listo para Máquina',
         total: 780,
         anticipo: 390,
@@ -321,8 +328,7 @@
         prendasPendientes: '',
         ubicaciones: 'Frente: BURNT en negras / Personaje flama en arena',
         mockupUrls: [
-          'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1534215754734-18e55d13e346?w=600&auto=format&fit=crop&q=80'
+          'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop&q=80'
         ],
         estatus: 'Listo para Máquina',
         total: 1360,
@@ -363,7 +369,6 @@
       renderizarMostrador();
     }
 
-    // VISTA TALLER (MOCKUPS + TALLAS + ALERTA DE STOCK)
     function renderizarTaller() {
       const grid = document.getElementById('grid-taller');
       grid.innerHTML = '';
@@ -435,7 +440,6 @@
             </div>
           </div>
 
-          <!-- BOTONES DE ACCIÓN TALLER -->
           <div class="p-4 pt-0 grid grid-cols-2 gap-2">
             <button onclick="imprimirHojaTaller('${p.id}')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 rounded-xl flex items-center justify-center gap-1.5 text-xs transition">
               <i class="fa-solid fa-print"></i> Hoja Taller
@@ -453,7 +457,6 @@
       document.getElementById(`img-main-${idPedido}`).src = url;
     }
 
-    // VISTA MOSTRADOR (TABLA GENERAL)
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
       tbody.innerHTML = '';
@@ -499,7 +502,6 @@
       });
     }
 
-    // MODAL REGISTRO
     function abrirModalNuevoPedido() {
       imagenesTemporales = [];
       document.getElementById('preview-container').innerHTML = '';
@@ -551,7 +553,7 @@
         tecnica: document.getElementById('input-tecnica').value,
         fechaEntrega: document.getElementById('input-fecha-entrega').value,
         prendas: document.getElementById('input-prendas').value,
-        prendasPendientes: '', // Por defecto entra limpio
+        prendasPendientes: '',
         ubicaciones: document.getElementById('input-ubicaciones').value,
         mockupUrls: imagenesTemporales.length > 0 ? [...imagenesTemporales] : [],
         total: parseFloat(document.getElementById('input-total').value) || 0,
@@ -565,7 +567,6 @@
       cerrarModalNuevoPedido();
     }
 
-    // MODAL GESTIONAR PRENDAS FALTANTES
     function abrirModalGestionar(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
@@ -593,7 +594,7 @@
       }
     }
 
-    // IMPRIMIR HOJA DE TALLER
+    // IMPRESIÓN COMPACTA Y MULTI-IMAGEN
     function imprimirHojaTaller(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
@@ -605,14 +606,22 @@
       document.getElementById('print-entrega').innerText = p.fechaEntrega || 'Inmediata';
       document.getElementById('print-stock-status').innerText = p.prendasPendientes ? `PARCIAL: ${p.prendasPendientes}` : '100% Completo en taller';
       document.getElementById('print-prendas').innerText = p.prendas;
-      document.getElementById('print-ubicaciones').innerText = p.ubicaciones || 'Ver mockup visual adjunto';
+      document.getElementById('print-ubicaciones').innerText = p.ubicaciones || 'Ver mockups adjuntos';
 
-      const printImg = document.getElementById('print-mockup');
+      const mockupsContainer = document.getElementById('print-mockups-container');
+      mockupsContainer.innerHTML = '';
+
       if (p.mockupUrls && p.mockupUrls.length > 0) {
-        printImg.src = p.mockupUrls[0];
-        printImg.style.display = 'block';
+        // Si hay 1 foto, va grande; si hay 2 o más, se acomodan lado a lado
+        const maxHeight = p.mockupUrls.length === 1 ? 'h-64' : 'h-48 max-w-[48%]';
+        p.mockupUrls.forEach(url => {
+          const img = document.createElement('img');
+          img.src = url;
+          img.className = `${maxHeight} object-contain rounded border border-gray-300 p-1`;
+          mockupsContainer.appendChild(img);
+        });
       } else {
-        printImg.style.display = 'none';
+        mockupsContainer.innerHTML = '<span class="text-xs text-gray-400 py-6 font-medium">Sin mockup visual registrado</span>';
       }
 
       window.print();
