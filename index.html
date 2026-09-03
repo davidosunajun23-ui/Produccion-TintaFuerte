@@ -522,7 +522,7 @@
     };
 
     // ====================================================
-    // LÓGICA DE PRIORIDAD DE FECHAS Y ORDENAMIENTO
+    // LÓGICA DE PRIORIDAD DE FECHAS Y ORDENAMIENTO INTELIGENTE
     // ====================================================
     function parseFechaLocal(strFecha) {
       if (!strFecha) return null;
@@ -537,7 +537,7 @@
       return `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
     }
 
-    function calcularInfoFecha(strFecha) {
+    function calcularInfoFecha(strFecha, estatus) {
       if (!strFecha) {
         return { tieneFecha: false, ordenScore: 999999, badgeHtml: '' };
       }
@@ -555,29 +555,36 @@
       const diffDias = Math.round(diffMs / (1000 * 60 * 60 * 24));
       const fechaBonita = formatearFechaBonita(fechaObj);
 
+      // Si el pedido ya está Terminado o Entregado, apagamos alertas
+      const esCerrado = estatus === 'Entregado y Cerrado';
+      const esTerminado = estatus === 'Terminado / Por Liquidar';
+
       let badgeHtml = '';
       let ordenScore = diffDias;
 
-      if (diffDias < 0) {
-        // Vencido
-        badgeHtml = `<span class="bg-rose-950/80 text-rose-300 border border-rose-500/60 text-[11px] px-2.5 py-0.5 rounded-md font-black inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Vencido · ${fechaBonita}</span>`;
-        ordenScore = -100 + diffDias;
-      } else if (diffDias === 0) {
-        // HOY
-        badgeHtml = `<span class="bg-rose-600 text-white text-xs px-2.5 py-0.5 rounded-md font-black shadow-md shadow-rose-600/30 animate-pulse inline-flex items-center gap-1"><i class="fa-solid fa-bolt"></i> HOY · ${fechaBonita}</span>`;
-        ordenScore = 0;
-      } else if (diffDias === 1) {
-        // Mañana
-        badgeHtml = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/50 text-[11px] px-2.5 py-0.5 rounded-md font-black inline-flex items-center gap-1"><i class="fa-solid fa-clock"></i> Mañana · ${fechaBonita}</span>`;
-        ordenScore = 1;
-      } else if (diffDias === 2) {
-        // Pasado mañana
-        badgeHtml = `<span class="bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 text-[11px] px-2.5 py-0.5 rounded-md font-black inline-flex items-center gap-1"><i class="fa-regular fa-calendar"></i> Pasado mañana · ${fechaBonita}</span>`;
-        ordenScore = 2;
+      if (esCerrado || esTerminado) {
+        // Alerta apagada: diseño neutro sin llamadas de atención
+        badgeHtml = `<span class="bg-slate-800/80 text-slate-400 border border-slate-700 text-[11px] px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1"><i class="fa-regular fa-calendar"></i> ${fechaBonita}</span>`;
+        // Si está cerrado/entregado, se manda al fondo absoluto
+        ordenScore = esCerrado ? 5000000 : 2000000 + diffDias;
       } else {
-        // Fechas posteriores normales
-        badgeHtml = `<span class="bg-slate-700/60 text-slate-300 border border-slate-600/60 text-[11px] px-2 py-0.5 rounded-md font-semibold inline-flex items-center gap-1"><i class="fa-regular fa-calendar-days"></i> ${fechaBonita}</span>`;
-        ordenScore = diffDias;
+        // Pedidos activos en flujo: activan badges de alerta según urgencia
+        if (diffDias < 0) {
+          badgeHtml = `<span class="bg-rose-950/80 text-rose-300 border border-rose-500/60 text-[11px] px-2.5 py-0.5 rounded-md font-black inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Vencido · ${fechaBonita}</span>`;
+          ordenScore = -100 + diffDias;
+        } else if (diffDias === 0) {
+          badgeHtml = `<span class="bg-rose-600 text-white text-xs px-2.5 py-0.5 rounded-md font-black shadow-md shadow-rose-600/30 animate-pulse inline-flex items-center gap-1"><i class="fa-solid fa-bolt"></i> HOY · ${fechaBonita}</span>`;
+          ordenScore = 0;
+        } else if (diffDias === 1) {
+          badgeHtml = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/50 text-[11px] px-2.5 py-0.5 rounded-md font-black inline-flex items-center gap-1"><i class="fa-solid fa-clock"></i> Mañana · ${fechaBonita}</span>`;
+          ordenScore = 1;
+        } else if (diffDias === 2) {
+          badgeHtml = `<span class="bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 text-[11px] px-2.5 py-0.5 rounded-md font-black inline-flex items-center gap-1"><i class="fa-regular fa-calendar"></i> Pasado mañana · ${fechaBonita}</span>`;
+          ordenScore = 2;
+        } else {
+          badgeHtml = `<span class="bg-slate-700/60 text-slate-300 border border-slate-600/60 text-[11px] px-2 py-0.5 rounded-md font-semibold inline-flex items-center gap-1"><i class="fa-regular fa-calendar-days"></i> ${fechaBonita}</span>`;
+          ordenScore = diffDias;
+        }
       }
 
       return {
@@ -590,8 +597,8 @@
 
     function ordenarPorPrioridad(lista) {
       return [...lista].sort((a, b) => {
-        const infoA = calcularInfoFecha(a.fechaEntrega);
-        const infoB = calcularInfoFecha(b.fechaEntrega);
+        const infoA = calcularInfoFecha(a.fechaEntrega, a.estatus);
+        const infoB = calcularInfoFecha(b.fechaEntrega, b.estatus);
 
         if (infoA.ordenScore !== infoB.ordenScore) {
           return infoA.ordenScore - infoB.ordenScore;
@@ -616,7 +623,7 @@
     }
 
     // ====================================================
-    // VISTA TALLER (ORDENADA POR FECHA PRIORITARIA)
+    // VISTA TALLER (ORDENADA POR PRIORIDAD)
     // ====================================================
     function renderizarTaller() {
       const grid = document.getElementById('grid-taller');
@@ -634,7 +641,7 @@
 
       pedidosTaller.forEach(p => {
         const tienePendiente = p.prendasPendientes && p.prendasPendientes.trim() !== '';
-        const infoFecha = calcularInfoFecha(p.fechaEntrega);
+        const infoFecha = calcularInfoFecha(p.fechaEntrega, p.estatus);
 
         const card = document.createElement('div');
         card.className = `bg-slate-800 rounded-2xl border ${tienePendiente ? 'border-amber-500/80 shadow-amber-500/10' : 'border-slate-700'} overflow-hidden shadow-xl flex flex-col justify-between hover:border-blue-500/50 transition`;
@@ -720,7 +727,7 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR (ORDENADA POR FECHA PRIORITARIA)
+    // VISTA MOSTRADOR (ENTREGADOS AL FINAL Y SIN ALERTAS)
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
@@ -738,12 +745,13 @@
         const pagado = totalPagado(p);
         const saldo = saldoPendiente(p);
         const liquidado = saldo <= 0;
-        const infoFecha = calcularInfoFecha(p.fechaEntrega);
+        const infoFecha = calcularInfoFecha(p.fechaEntrega, p.estatus);
+        const esCerrado = p.estatus === 'Entregado y Cerrado';
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-700/30';
+        tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-60 bg-slate-900/40' : ''}`;
         tr.innerHTML = `
-          <td class="p-3 font-mono font-bold text-blue-400">${p.id}</td>
+          <td class="p-3 font-mono font-bold ${esCerrado ? 'text-slate-400' : 'text-blue-400'}">${p.id}</td>
           <td class="p-3">
             <div class="font-bold text-white">${p.cliente}</div>
             <div class="text-xs text-slate-400">${p.telefono || 'Sin tel'}</div>
@@ -1071,7 +1079,7 @@
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
 
-      const infoFecha = calcularInfoFecha(p.fechaEntrega);
+      const infoFecha = calcularInfoFecha(p.fechaEntrega, p.estatus);
 
       document.getElementById('print-folio').innerText = p.id;
       document.getElementById('print-fecha').innerText = infoFecha.tieneFecha ? `Entrega: ${infoFecha.fechaBonita}` : 'Sin fecha definida';
