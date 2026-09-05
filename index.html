@@ -167,11 +167,47 @@
           </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">
-            <i class="fa-solid fa-shirt text-blue-400"></i> Detalle Completo de Prendas y Tallas *
-          </label>
-          <textarea id="input-prendas" rows="2" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. 10 Playeras Cuello Redondo (Tallas pendientes por confirmar)"></textarea>
+        <!-- ESTRUCTURA MODULAR DE PRENDAS Y TALLAS -->
+        <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-700 space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-shirt"></i> Detalle de Prendas y Tallas
+            </span>
+            <label class="inline-flex items-center gap-1.5 text-xs text-amber-300 font-semibold cursor-pointer">
+              <input type="checkbox" id="check-tallas-pendientes" onchange="toggleTallasPendientes(this, 'nuevo')" class="rounded bg-slate-800 border-slate-600 text-amber-500 focus:ring-0">
+              Tallas pendientes por confirmar
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Total de Prendas *</label>
+              <input type="number" id="input-cant-total" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="Ej. 24">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-[11px] text-slate-400 mb-1">Modelo / Nombre de la Prenda *</label>
+              <input type="text" id="input-modelo-prenda" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white" placeholder="Ej. Playeras Optima 23 o Gorras Explosion Bazuka">
+            </div>
+          </div>
+
+          <!-- CONTENEDOR DE VARIANTES / CORRIDAS -->
+          <div id="seccion-variantes-nuevo" class="space-y-2 pt-1 border-t border-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] text-slate-400 font-semibold">Desglose de color y tallas:</span>
+              <button type="button" onclick="agregarFilaVariante('contenedor-variantes-nuevo')" class="text-xs text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-plus-circle"></i> Agregar Variante
+              </button>
+            </div>
+            <div id="contenedor-variantes-nuevo" class="space-y-2">
+              <!-- Renglón 1 por defecto -->
+              <div class="fila-variante grid grid-cols-12 gap-1.5 items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700/60">
+                <input type="number" placeholder="Cant." class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white font-bold var-cant">
+                <input type="text" placeholder="Color (Ej. Azul Cielo)" class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white var-color">
+                <input type="text" placeholder="Tallas (Ej. 10 S, 6 M, 2 XL)" class="col-span-5 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white var-tallas">
+                <button type="button" onclick="eliminarFilaVariante(this)" class="col-span-1 text-slate-500 hover:text-rose-400 text-center text-sm" title="Eliminar">&times;</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -272,11 +308,38 @@
           </div>
         </div>
 
-        <div class="bg-blue-950/20 border border-blue-500/40 p-3 rounded-xl">
-          <label class="block text-xs font-bold text-blue-300 mb-1 flex items-center gap-1.5">
-            <i class="fa-solid fa-shirt"></i> Prendas, Cantidades y Tallas Desglosadas:
-          </label>
-          <textarea id="edit-prendas" rows="3" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white text-xs leading-relaxed" placeholder="Actualiza aquí la lista de tallas"></textarea>
+        <!-- EDICIÓN ESTRUCTURADA DE PRENDAS Y TALLAS -->
+        <div class="bg-blue-950/20 border border-blue-500/40 p-3.5 rounded-xl space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-shirt"></i> Prendas y Tallas Desglosadas
+            </span>
+            <label class="inline-flex items-center gap-1.5 text-xs text-amber-300 font-semibold cursor-pointer">
+              <input type="checkbox" id="edit-check-tallas-pendientes" onchange="toggleTallasPendientes(this, 'edit')" class="rounded bg-slate-800 border-slate-600 text-amber-500 focus:ring-0">
+              Tallas pendientes por confirmar
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Total Prendas *</label>
+              <input type="number" id="edit-cant-total" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-bold">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-[11px] text-slate-400 mb-1">Modelo / Prenda *</label>
+              <input type="text" id="edit-modelo-prenda" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+            </div>
+          </div>
+
+          <div id="seccion-variantes-edit" class="space-y-2 pt-1 border-t border-slate-800">
+            <div class="flex justify-between items-center">
+              <span class="text-[11px] text-slate-400 font-semibold">Desglose de color y tallas:</span>
+              <button type="button" onclick="agregarFilaVariante('contenedor-variantes-edit')" class="text-xs text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-plus-circle"></i> Agregar Variante
+              </button>
+            </div>
+            <div id="contenedor-variantes-edit" class="space-y-2"></div>
+          </div>
         </div>
 
         <div>
@@ -431,7 +494,7 @@
     <div class="space-y-1.5 text-[10px] mb-2">
       <div class="border border-gray-400 p-1.5 rounded bg-gray-50">
         <strong class="block text-[9px] text-gray-600">PRENDAS A PROCESAR EN MÁQUINA:</strong>
-        <p id="print-prendas" class="text-[11px] font-bold leading-tight"></p>
+        <p id="print-prendas" class="text-[11px] font-bold leading-tight whitespace-pre-line"></p>
       </div>
       <div class="border border-gray-400 p-1.5 rounded">
         <strong class="block text-[9px] text-gray-600">UBICACIONES Y MEDIDAS:</strong>
@@ -522,6 +585,90 @@
     };
 
     // ====================================================
+    // LÓGICA DE MANEJO DE PRENDAS Y CORRIDAS DINÁMICAS
+    // ====================================================
+    window.toggleTallasPendientes = function(checkbox, modo) {
+      const contenedor = document.getElementById(modo === 'nuevo' ? 'seccion-variantes-nuevo' : 'seccion-variantes-edit');
+      if (checkbox.checked) {
+        contenedor.classList.add('hidden');
+      } else {
+        contenedor.classList.remove('hidden');
+      }
+    };
+
+    window.agregarFilaVariante = function(contenedorId, datos = { cant: '', color: '', tallas: '' }) {
+      const cont = document.getElementById(contenedorId);
+      const div = document.createElement('div');
+      div.className = 'fila-variante grid grid-cols-12 gap-1.5 items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700/60';
+      div.innerHTML = `
+        <input type="number" placeholder="Cant." value="${datos.cant || ''}" class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white font-bold var-cant">
+        <input type="text" placeholder="Color (Ej. Negro)" value="${datos.color || ''}" class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white var-color">
+        <input type="text" placeholder="Tallas (Ej. 10 S, 5 M)" value="${datos.tallas || ''}" class="col-span-5 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white var-tallas">
+        <button type="button" onclick="eliminarFilaVariante(this)" class="col-span-1 text-slate-500 hover:text-rose-400 text-center text-sm" title="Eliminar">&times;</button>
+      `;
+      cont.appendChild(div);
+    };
+
+    window.eliminarFilaVariante = function(btn) {
+      const cont = btn.closest('.space-y-2');
+      if (cont && cont.querySelectorAll('.fila-variante').length > 1) {
+        btn.closest('.fila-variante').remove();
+      } else {
+        // Limpiar inputs en vez de borrar el único que queda
+        const inputs = btn.closest('.fila-variante').querySelectorAll('input');
+        inputs.forEach(i => i.value = '');
+      }
+    };
+
+    function recopilarPrendas(esNuevo) {
+      const prefijo = esNuevo ? 'input' : 'edit';
+      const cantTotal = document.getElementById(`${prefijo}-cant-total`).value;
+      const modelo = document.getElementById(`${prefijo}-modelo-prenda`).value.trim();
+      const checkPendiente = document.getElementById(esNuevo ? 'check-tallas-pendientes' : 'edit-check-tallas-pendientes');
+      const tallasPendientes = checkPendiente ? checkPendiente.checked : false;
+
+      const contenedorId = esNuevo ? 'contenedor-variantes-nuevo' : 'contenedor-variantes-edit';
+      const filas = document.querySelectorAll(`#${contenedorId} .fila-variante`);
+      const variantes = [];
+
+      if (!tallasPendientes) {
+        filas.forEach(f => {
+          const c = f.querySelector('.var-cant').value;
+          const col = f.querySelector('.var-color').value.trim();
+          const t = f.querySelector('.var-tallas').value.trim();
+          if (c || col || t) {
+            variantes.push({ cant: c, color: col, tallas: t });
+          }
+        });
+      }
+
+      // Texto representativo para la UI / Taller
+      let textoPrendas = `${cantTotal} ${modelo}`;
+      if (tallasPendientes || variantes.length === 0) {
+        textoPrendas += ` (Tallas pendientes por confirmar)`;
+      } else {
+        const desglose = variantes.map(v => {
+          const partes = [];
+          if (v.cant) partes.push(v.cant);
+          if (v.color) partes.push(v.color);
+          if (v.tallas) partes.push(`(${v.tallas})`);
+          return partes.join(' ');
+        }).join(' / ');
+        textoPrendas += `: ${desglose}`;
+      }
+
+      return {
+        texto: textoPrendas,
+        estructura: {
+          cantTotal,
+          modelo,
+          tallasPendientes,
+          variantes
+        }
+      };
+    }
+
+    // ====================================================
     // LÓGICA DE PRIORIDAD DE FECHAS Y ORDENAMIENTO INTELIGENTE
     // ====================================================
     function parseFechaLocal(strFecha) {
@@ -555,7 +702,6 @@
       const diffDias = Math.round(diffMs / (1000 * 60 * 60 * 24));
       const fechaBonita = formatearFechaBonita(fechaObj);
 
-      // Si el pedido ya está Terminado o Entregado, apagamos alertas
       const esCerrado = estatus === 'Entregado y Cerrado';
       const esTerminado = estatus === 'Terminado / Por Liquidar';
 
@@ -563,12 +709,9 @@
       let ordenScore = diffDias;
 
       if (esCerrado || esTerminado) {
-        // Alerta apagada: diseño neutro sin llamadas de atención
         badgeHtml = `<span class="bg-slate-800/80 text-slate-400 border border-slate-700 text-[11px] px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1"><i class="fa-regular fa-calendar"></i> ${fechaBonita}</span>`;
-        // Si está cerrado/entregado, se manda al fondo absoluto
         ordenScore = esCerrado ? 5000000 : 2000000 + diffDias;
       } else {
-        // Pedidos activos en flujo: activan badges de alerta según urgencia
         if (diffDias < 0) {
           badgeHtml = `<span class="bg-rose-950/80 text-rose-300 border border-rose-500/60 text-[11px] px-2.5 py-0.5 rounded-md font-black inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Vencido · ${fechaBonita}</span>`;
           ordenScore = -100 + diffDias;
@@ -675,7 +818,6 @@
                 </span>
               </div>
               
-              <!-- FECHA DINÁMICA DE PRIORIDAD (SI TIENE FECHA) -->
               ${infoFecha.tieneFecha ? `
                 <div class="mt-1 flex items-center">
                   ${infoFecha.badgeHtml}
@@ -727,7 +869,7 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR (ENTREGADOS AL FINAL Y SIN ALERTAS)
+    // VISTA MOSTRADOR (CON BOTÓN COPIAR RESUMEN PARA JEFE)
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
@@ -780,14 +922,17 @@
           <td class="p-3 font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'}">
             ${liquidado ? '<span class="text-xs bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + saldo}
           </td>
-          <td class="p-3 text-center space-x-1.5 whitespace-nowrap">
+          <td class="p-3 text-center space-x-1 whitespace-nowrap">
+            <button id="btn-copy-${p.id}" onclick="window.copiarResumenJefe('${p.id}')" class="bg-emerald-700/40 text-emerald-300 hover:bg-emerald-600/60 p-1.5 rounded text-xs px-2 font-semibold transition" title="Copiar resumen para WhatsApp">
+              <i class="fa-solid fa-copy"></i> Resumen
+            </button>
             <button onclick="window.abrirModalEditar('${p.id}')" class="bg-sky-600/30 text-sky-300 hover:bg-sky-600/50 p-1.5 rounded text-xs px-2 font-semibold" title="Editar pedido y tallas">
               <i class="fa-solid fa-pen"></i> Editar
             </button>
             <button onclick="window.abrirModalPagos('${p.id}')" class="bg-emerald-600/30 text-emerald-300 hover:bg-emerald-600/50 p-1.5 rounded text-xs px-2 font-semibold" title="Ver o registrar pagos">
               <i class="fa-solid fa-receipt"></i> Pagos
             </button>
-            <button onclick="window.abrirModalGestionar('${p.id}')" class="bg-amber-600/30 text-amber-300 hover:bg-amber-600/50 p-1.5 rounded text-xs px-2 font-semibold" title="Gestionar prendas pendientes">
+            <button onclick="window.abrirModalGestionar('${p.id}')" class="bg-amber-600/30 text-amber-300 hover:bg-amber-600/50 p-1.5 rounded text-xs px-2 font-semibold" title="Gestionar stock de prendas">
               <i class="fa-solid fa-boxes-stacked"></i> Stock
             </button>
             <button onclick="window.imprimirHojaTaller('${p.id}')" class="text-slate-300 hover:text-white p-1.5" title="Imprimir Hoja de Taller"><i class="fa-solid fa-print"></i></button>
@@ -798,11 +943,69 @@
       });
     }
 
+    // ====================================================
+    // FUNCIÓN: COPIAR RESUMEN PARA WHATSAPP
+    // ====================================================
+    window.copiarResumenJefe = function(id) {
+      const p = pedidos.find(item => item.id === id);
+      if (!p) return;
+
+      const primerPago = (p.pagos && p.pagos.length > 0) ? p.pagos[0] : null;
+      const anticipoMonto = primerPago ? primerPago.monto : 0;
+      const metodoTexto = primerPago && primerPago.metodo ? ` con ${primerPago.metodo}` : '';
+
+      let bloquePrendas = '';
+      if (p.prendasEstructura && p.prendasEstructura.cantTotal) {
+        const est = p.prendasEstructura;
+        if (est.tallasPendientes || !est.variantes || est.variantes.length === 0) {
+          bloquePrendas = `${est.cantTotal} ${est.modelo} (Tallas pendientes por confirmar)`;
+        } else {
+          bloquePrendas = `${est.cantTotal} ${est.modelo}:\n` + est.variantes.map(v => {
+            const partes = [];
+            if (v.cant) partes.push(v.cant);
+            if (v.color) partes.push(v.color);
+            if (v.tallas) partes.push(`(${v.tallas})`);
+            return `• ${partes.join(' ')}`;
+          }).join('\n');
+        }
+      } else {
+        bloquePrendas = p.prendas || '';
+      }
+
+      const texto = `*${p.cliente}*\n${bloquePrendas}\n*(Total $${p.total}) Anticipo${metodoTexto} ($${anticipoMonto})*`;
+
+      navigator.clipboard.writeText(texto).then(() => {
+        const btn = document.getElementById(`btn-copy-${id}`);
+        if (btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Copiado!';
+          btn.className = 'bg-emerald-500 text-slate-900 font-bold p-1.5 rounded text-xs px-2 transition';
+          setTimeout(() => {
+            btn.innerHTML = original;
+            btn.className = 'bg-emerald-700/40 text-emerald-300 hover:bg-emerald-600/60 p-1.5 rounded text-xs px-2 font-semibold transition';
+          }, 1800);
+        }
+      }).catch(err => {
+        console.error("Error al copiar:", err);
+        alert("No se pudo copiar automáticamente.");
+      });
+    };
+
     // REGISTRO DE NUEVO PEDIDO
     window.abrirModalNuevoPedido = function() {
       imagenesTemporales = [];
       document.getElementById('preview-container').innerHTML = '';
       document.getElementById('contador-imagenes-subidas').innerText = '0 / 6';
+      document.getElementById('form-pedido').reset();
+      
+      const check = document.getElementById('check-tallas-pendientes');
+      check.checked = false;
+      document.getElementById('seccion-variantes-nuevo').classList.remove('hidden');
+
+      const cont = document.getElementById('contenedor-variantes-nuevo');
+      cont.innerHTML = '';
+      agregarFilaVariante('contenedor-variantes-nuevo');
+
       document.getElementById('modal-nuevo-pedido').classList.remove('hidden');
     };
 
@@ -880,6 +1083,8 @@
       const anticipo = parseFloat(document.getElementById('input-anticipo').value) || 0;
       const metodoAnticipo = document.getElementById('input-metodo-anticipo').value;
 
+      const infoPrendas = recopilarPrendas(true);
+
       const hoy = new Date();
       const fechaHora = hoy.toLocaleDateString() + ' ' + hoy.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -897,7 +1102,8 @@
         telefono: document.getElementById('input-telefono').value,
         tecnica: document.getElementById('input-tecnica').value,
         fechaEntrega: document.getElementById('input-fecha-entrega').value || '',
-        prendas: document.getElementById('input-prendas').value,
+        prendas: infoPrendas.texto,
+        prendasEstructura: infoPrendas.estructura,
         prendasPendientes: '',
         ubicaciones: document.getElementById('input-ubicaciones').value,
         mockupUrls: imagenesTemporales.length > 0 ? [...imagenesTemporales] : [],
@@ -930,10 +1136,34 @@
       document.getElementById('edit-telefono').value = p.telefono || '';
       document.getElementById('edit-tecnica').value = p.tecnica || 'DTF Textil';
       document.getElementById('edit-fecha-entrega').value = p.fechaEntrega || '';
-      document.getElementById('edit-prendas').value = p.prendas || '';
       document.getElementById('edit-ubicaciones').value = p.ubicaciones || '';
       document.getElementById('edit-total').value = p.total || 0;
 
+      // Cargar datos estructurados de prendas si existen, o preparar defaults
+      const checkPendiente = document.getElementById('edit-check-tallas-pendientes');
+      const contenedor = document.getElementById('contenedor-variantes-edit');
+      contenedor.innerHTML = '';
+
+      if (p.prendasEstructura && p.prendasEstructura.cantTotal) {
+        const est = p.prendasEstructura;
+        document.getElementById('edit-cant-total').value = est.cantTotal;
+        document.getElementById('edit-modelo-prenda').value = est.modelo;
+        checkPendiente.checked = !!est.tallasPendientes;
+
+        if (est.variantes && est.variantes.length > 0) {
+          est.variantes.forEach(v => agregarFilaVariante('contenedor-variantes-edit', v));
+        } else {
+          agregarFilaVariante('contenedor-variantes-edit');
+        }
+      } else {
+        // Pedido anterior sin estructura: aproximar en el modelo
+        document.getElementById('edit-cant-total').value = '';
+        document.getElementById('edit-modelo-prenda').value = p.prendas || '';
+        checkPendiente.checked = false;
+        agregarFilaVariante('contenedor-variantes-edit');
+      }
+
+      toggleTallasPendientes(checkPendiente, 'edit');
       document.getElementById('modal-editar-pedido').classList.remove('hidden');
     };
 
@@ -948,12 +1178,15 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Guardando...';
 
+      const infoPrendas = recopilarPrendas(false);
+
       const dataActualizada = {
         cliente: document.getElementById('edit-cliente').value,
         telefono: document.getElementById('edit-telefono').value,
         tecnica: document.getElementById('edit-tecnica').value,
         fechaEntrega: document.getElementById('edit-fecha-entrega').value || '',
-        prendas: document.getElementById('edit-prendas').value,
+        prendas: infoPrendas.texto,
+        prendasEstructura: infoPrendas.estructura,
         ubicaciones: document.getElementById('edit-ubicaciones').value,
         total: parseFloat(document.getElementById('edit-total').value) || 0
       };
