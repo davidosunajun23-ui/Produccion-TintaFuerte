@@ -49,7 +49,7 @@
         </div>
       </div>
 
-      <!-- PESTAÑAS -->
+      <!-- PESTAÑAS PRINCIPALES -->
       <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700 text-sm">
         <button id="btn-tab-taller" onclick="cambiarVista('taller')" class="px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow">
           <i class="fa-solid fa-industry"></i> Vista Taller
@@ -66,7 +66,7 @@
     </div>
   </header>
 
-  <!-- CONTENEDOR PRINCIPAL CON ANCHO EQUILIBRADO -->
+  <!-- CONTENEDOR PRINCIPAL -->
   <main class="max-w-7xl mx-auto p-4 md:p-6">
 
     <!-- VISTA TALLER -->
@@ -91,14 +91,26 @@
       </div>
     </section>
 
-    <!-- VISTA MOSTRADOR CON DISTANCIA EQUILIBRADA Y BOTONES TEXTUALES -->
+    <!-- VISTA MOSTRADOR -->
     <section id="vista-mostrador" class="hidden">
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
         <div>
           <h2 class="text-2xl font-black tracking-wide text-slate-200 flex items-center gap-2">
             <i class="fa-solid fa-table-list"></i> CONTROL GENERAL Y FINANZAS
           </h2>
           <p class="text-xs text-slate-400">Sincronización multi-dispositivo de anticipos, abonos y prendas</p>
+        </div>
+
+        <!-- SUBPESTAÑAS DE MOSTRADOR -->
+        <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-bold">
+          <button id="btn-subtab-activos" onclick="cambiarSubtabMostrador('activos')" class="px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 bg-blue-600 text-white shadow">
+            <span>Activos</span>
+            <span id="badge-contador-activos" class="bg-blue-900/60 text-blue-200 text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+          <button id="btn-subtab-entregados" onclick="cambiarSubtabMostrador('entregados')" class="px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white">
+            <span>Entregados</span>
+            <span id="badge-contador-entregados" class="bg-slate-700 text-slate-300 text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+          </button>
         </div>
       </div>
 
@@ -537,6 +549,7 @@
 
     let pedidos = [];
     let imagenesTemporales = [];
+    let subtabMostradorActual = 'activos'; // 'activos' o 'entregados'
 
     // OYENTE EN TIEMPO REAL
     const q = query(pedidosRef, orderBy("creadoEn", "desc"));
@@ -567,6 +580,22 @@
         btnMostrador.className = 'px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 bg-blue-600 text-white shadow';
         btnTaller.className = 'px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 text-slate-400 hover:text-white';
       }
+    };
+
+    window.cambiarSubtabMostrador = function(subtab) {
+      subtabMostradorActual = subtab;
+      const btnActivos = document.getElementById('btn-subtab-activos');
+      const btnEntregados = document.getElementById('btn-subtab-entregados');
+
+      if (subtab === 'activos') {
+        btnActivos.className = 'px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 bg-blue-600 text-white shadow';
+        btnEntregados.className = 'px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white';
+      } else {
+        btnEntregados.className = 'px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 bg-slate-700 text-white shadow';
+        btnActivos.className = 'px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white';
+      }
+
+      renderizarMostrador();
     };
 
     // MANEJO DE PRENDAS Y CORRIDAS DINÁMICAS
@@ -845,18 +874,30 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR (CON BOTONES DE TEXTO Y SIN IMPRESIÓN INDIVIDUAL)
+    // VISTA MOSTRADOR (CON SUBPESTAÑAS ACTIVOS Y ENTREGADOS)
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
       tbody.innerHTML = '';
 
-      if (pedidos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-slate-500">No hay pedidos registrados en la nube.</td></tr>';
+      const pedidosEntregados = pedidos.filter(p => p.estatus === 'Entregado y Cerrado');
+      const pedidosActivos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
+
+      // Actualizar contadores en las subpestañas
+      document.getElementById('badge-contador-activos').innerText = pedidosActivos.length;
+      document.getElementById('badge-contador-entregados').innerText = pedidosEntregados.length;
+
+      // Filtrar según la subpestaña seleccionada
+      const listaMostrador = (subtabMostradorActual === 'activos') ? pedidosActivos : pedidosEntregados;
+      const pedidosOrdenados = ordenarPorPrioridad(listaMostrador);
+
+      if (pedidosOrdenados.length === 0) {
+        const mensajeVacio = (subtabMostradorActual === 'activos') 
+          ? 'No hay pedidos activos en proceso.' 
+          : 'No hay pedidos en el historial de entregados.';
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500">${mensajeVacio}</td></tr>`;
         return;
       }
-
-      const pedidosOrdenados = ordenarPorPrioridad(pedidos);
 
       pedidosOrdenados.forEach(p => {
         const tienePendiente = p.prendasPendientes && p.prendasPendientes.trim() !== '';
@@ -867,7 +908,7 @@
         const esCerrado = p.estatus === 'Entregado y Cerrado';
 
         const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-60 bg-slate-900/40' : ''}`;
+        tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-70 bg-slate-900/40' : ''}`;
         tr.innerHTML = `
           <!-- FOLIO -->
           <td class="py-3 px-3 font-mono font-bold ${esCerrado ? 'text-slate-500' : 'text-blue-400'} whitespace-nowrap align-middle">${p.id}</td>
@@ -914,7 +955,7 @@
             ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + saldo}
           </td>
 
-          <!-- ACCIONES CON TEXTO DESCRIPTIVO -->
+          <!-- ACCIONES -->
           <td class="py-3 px-3 text-center whitespace-nowrap align-middle">
             <div class="inline-flex items-center gap-1.5">
               <button id="btn-copy-${p.id}" onclick="window.copiarResumenJefe('${p.id}')" class="bg-emerald-700/40 hover:bg-emerald-600/60 text-emerald-300 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition" title="Copiar resumen para WhatsApp">
