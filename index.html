@@ -237,12 +237,12 @@
           <div id="preview-container" class="flex flex-wrap gap-2 mt-2 empty:hidden"></div>
         </div>
 
-        <!-- FINANZAS: DECIMALES HABILITADOS CON STEP="ANY" -->
+        <!-- FINANZAS: DECIMALES HABILITADOS Y CÁLCULO SEGURO PARA LIQUIDACIÓN COMPLETA -->
         <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Total ($) *</label>
-              <input type="number" step="any" id="input-total" oninput="calcularSaldoInicial()" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
+              <input type="number" step="any" id="input-total" oninput="sugerirMitadAnticipo(); calcularSaldoInicial();" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
             </div>
             <div>
               <label class="block font-semibold text-emerald-400 mb-1">Anticipo ($) *</label>
@@ -371,7 +371,7 @@
           <input type="file" id="edit-input-mockup" multiple accept="image/*" onchange="previsualizarSubidas(this, 'edit')" class="w-full text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-600 file:text-white cursor-pointer">
         </div>
 
-        <!-- TOTAL EN EDICIÓN: DECIMALES HABILITADOS CON STEP="ANY" -->
+        <!-- TOTAL EN EDICIÓN CON DECIMALES -->
         <div>
           <label class="block font-semibold text-slate-400 mb-1">Importe Total del Pedido ($)</label>
           <input type="number" step="any" id="edit-total" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-bold">
@@ -428,7 +428,6 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Monto ($):</label>
-              <!-- MONTO DE ABONO: DECIMALES HABILITADOS CON STEP="ANY" -->
               <input type="number" step="any" id="input-abono-monto" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
             </div>
             <div>
@@ -778,7 +777,6 @@
       renderizarMostrador();
     }
 
-    // FORMATEO FINANCIERO CON PRESERVACIÓN DE DECIMALES
     function formatDinero(num) {
       const valor = parseFloat(num) || 0;
       return Number.isInteger(valor) ? valor.toString() : valor.toFixed(2);
@@ -1203,12 +1201,18 @@
       document.getElementById('form-pedido').reset();
     };
 
+    // LÓGICA CORREGIDA: SÓLO SUGIERE AL ESCRIBIR TOTAL; NO BLOQUEA EL BORRADO O MODIFICACIÓN LIBRE
+    window.sugerirMitadAnticipo = function() {
+      const total = parseFloat(document.getElementById('input-total').value) || 0;
+      const anticipoInput = document.getElementById('input-anticipo');
+      if (anticipoInput.value === '' && total > 0) {
+        anticipoInput.value = (Math.round((total * 0.5) * 100) / 100).toString();
+      }
+    };
+
     window.calcularSaldoInicial = function() {
       const total = parseFloat(document.getElementById('input-total').value) || 0;
       const anticipoInput = document.getElementById('input-anticipo');
-      if (!anticipoInput.value && total > 0) {
-        anticipoInput.value = (Math.round((total * 0.5) * 100) / 100).toString();
-      }
       const anticipo = parseFloat(anticipoInput.value) || 0;
       const saldo = Math.max(0, Math.round((total - anticipo) * 100) / 100);
       document.getElementById('input-saldo').value = saldo.toString();
