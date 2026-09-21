@@ -124,9 +124,9 @@
                 <th class="py-3 px-3 min-w-[130px]">Prioridad / Fecha</th>
                 <th class="py-3 px-3 min-w-[280px]">Prendas & Tallas</th>
                 <th class="py-3 px-3 w-36">Estatus</th>
-                <th class="py-3 px-2.5 text-right w-20">Total</th>
-                <th class="py-3 px-2.5 text-right w-20">Pagado</th>
-                <th class="py-3 px-2.5 text-right w-24">Saldo</th>
+                <th class="py-3 px-2.5 text-right w-24">Total</th>
+                <th class="py-3 px-2.5 text-right w-24">Pagado</th>
+                <th class="py-3 px-2.5 text-right w-28">Saldo</th>
                 <th class="py-3 px-3 text-center min-w-[340px]">Acciones</th>
               </tr>
             </thead>
@@ -237,20 +237,20 @@
           <div id="preview-container" class="flex flex-wrap gap-2 mt-2 empty:hidden"></div>
         </div>
 
-        <!-- FINANZAS -->
+        <!-- FINANZAS: DECIMALES HABILITADOS CON STEP="ANY" -->
         <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Total ($) *</label>
-              <input type="number" id="input-total" oninput="calcularSaldoInicial()" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
+              <input type="number" step="any" id="input-total" oninput="calcularSaldoInicial()" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
             </div>
             <div>
               <label class="block font-semibold text-emerald-400 mb-1">Anticipo ($) *</label>
-              <input type="number" id="input-anticipo" oninput="calcularSaldoInicial()" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-emerald-400 font-bold" placeholder="0.00">
+              <input type="number" step="any" id="input-anticipo" oninput="calcularSaldoInicial()" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-emerald-400 font-bold" placeholder="0.00">
             </div>
             <div>
               <label class="block font-semibold text-rose-400 mb-1">Saldo Restante</label>
-              <input type="number" id="input-saldo" readonly class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2 text-rose-400 font-bold" placeholder="0.00">
+              <input type="number" step="any" id="input-saldo" readonly class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-2 text-rose-400 font-bold" placeholder="0.00">
             </div>
           </div>
 
@@ -371,9 +371,10 @@
           <input type="file" id="edit-input-mockup" multiple accept="image/*" onchange="previsualizarSubidas(this, 'edit')" class="w-full text-slate-400 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-600 file:text-white cursor-pointer">
         </div>
 
+        <!-- TOTAL EN EDICIÓN: DECIMALES HABILITADOS CON STEP="ANY" -->
         <div>
           <label class="block font-semibold text-slate-400 mb-1">Importe Total del Pedido ($)</label>
-          <input type="number" id="edit-total" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-bold">
+          <input type="number" step="any" id="edit-total" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-bold">
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t border-slate-700">
@@ -427,7 +428,8 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Monto ($):</label>
-              <input type="number" id="input-abono-monto" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
+              <!-- MONTO DE ABONO: DECIMALES HABILITADOS CON STEP="ANY" -->
+              <input type="number" step="any" id="input-abono-monto" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="0.00">
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Método:</label>
@@ -691,7 +693,7 @@
       };
     }
 
-    // PRIORIDAD Y FORMATO DE FECHAS
+    // FORMATEO Y PRIORIDAD DE FECHAS
     function parseFechaLocal(strFecha) {
       if (!strFecha) return null;
       const partes = strFecha.split('-');
@@ -776,6 +778,12 @@
       renderizarMostrador();
     }
 
+    // FORMATEO FINANCIERO CON PRESERVACIÓN DE DECIMALES
+    function formatDinero(num) {
+      const valor = parseFloat(num) || 0;
+      return Number.isInteger(valor) ? valor.toString() : valor.toFixed(2);
+    }
+
     function totalPagado(pedido) {
       if (!pedido.pagos || !Array.isArray(pedido.pagos)) return 0;
       return pedido.pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
@@ -783,7 +791,8 @@
 
     function saldoPendiente(pedido) {
       const pagado = totalPagado(pedido);
-      return Math.max(0, (pedido.total || 0) - pagado);
+      const total = parseFloat(pedido.total) || 0;
+      return Math.max(0, Math.round((total - pagado) * 100) / 100);
     }
 
     // ====================================================
@@ -914,7 +923,7 @@
         const tienePendiente = p.prendasPendientes && p.prendasPendientes.trim() !== '';
         const pagado = totalPagado(p);
         const saldo = saldoPendiente(p);
-        const liquidado = saldo <= 0;
+        const liquidado = saldo <= 0.001;
         const infoFecha = calcularInfoFecha(p.fechaEntrega, p.estatus);
         const esCerrado = p.estatus === 'Entregado y Cerrado';
 
@@ -955,15 +964,15 @@
             </select>
           </td>
 
-          <!-- TOTAL -->
-          <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-middle">$${p.total}</td>
+          <!-- TOTAL CON DECIMALES HABILITADOS -->
+          <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-middle">$${formatDinero(p.total)}</td>
 
-          <!-- PAGADO -->
-          <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-middle">$${pagado}</td>
+          <!-- PAGADO CON DECIMALES HABILITADOS -->
+          <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-middle">$${formatDinero(pagado)}</td>
 
-          <!-- SALDO -->
+          <!-- SALDO CON DECIMALES HABILITADOS -->
           <td class="py-3 px-2.5 text-right font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'} whitespace-nowrap align-middle">
-            ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + saldo}
+            ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + formatDinero(saldo)}
           </td>
 
           <!-- ACCIONES -->
@@ -997,7 +1006,7 @@
       if (!p) return;
 
       const primerPago = (p.pagos && p.pagos.length > 0) ? p.pagos[0] : null;
-      const anticipoMonto = primerPago ? primerPago.monto : 0;
+      const anticipoMonto = primerPago ? formatDinero(primerPago.monto) : '0';
       const metodoTexto = primerPago && primerPago.metodo ? ` con ${primerPago.metodo}` : '';
 
       let bloquePrendas = '';
@@ -1018,7 +1027,7 @@
         bloquePrendas = p.prendas || '';
       }
 
-      const texto = `*${p.cliente}*\n${bloquePrendas}\n*(Total $${p.total}) Anticipo${metodoTexto} ($${anticipoMonto})*`;
+      const texto = `*${p.cliente}*\n${bloquePrendas}\n*(Total $${formatDinero(p.total)}) Anticipo${metodoTexto} ($${anticipoMonto})*`;
 
       navigator.clipboard.writeText(texto).then(() => {
         const btn = document.getElementById(`btn-copy-${id}`);
@@ -1037,7 +1046,7 @@
       });
     };
 
-    // IMPRIMIR HOJA GENERAL DE TALLER (TODOS LOS PENDIENTES)
+    // IMPRIMIR HOJA GENERAL DE TALLER
     window.imprimirListaTaller = function() {
       const activos = pedidos.filter(p => p.estatus === 'Listo para Máquina' || p.estatus === 'En Producción');
       const pedidosTaller = ordenarPorPrioridad(activos);
@@ -1198,10 +1207,11 @@
       const total = parseFloat(document.getElementById('input-total').value) || 0;
       const anticipoInput = document.getElementById('input-anticipo');
       if (!anticipoInput.value && total > 0) {
-        anticipoInput.value = (total * 0.5).toFixed(2);
+        anticipoInput.value = (Math.round((total * 0.5) * 100) / 100).toString();
       }
       const anticipo = parseFloat(anticipoInput.value) || 0;
-      document.getElementById('input-saldo').value = Math.max(0, total - anticipo).toFixed(2);
+      const saldo = Math.max(0, Math.round((total - anticipo) * 100) / 100);
+      document.getElementById('input-saldo').value = saldo.toString();
     };
 
     window.guardarPedido = async function(e) {
@@ -1257,7 +1267,7 @@
       }
     };
 
-    // MODAL EDITAR PEDIDO CON MOCKUPS
+    // MODAL EDITAR PEDIDO CON MOCKUPS Y DECIMALES
     window.abrirModalEditar = function(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
@@ -1269,13 +1279,11 @@
       document.getElementById('edit-tecnica').value = p.tecnica || 'DTF Textil';
       document.getElementById('edit-fecha-entrega').value = p.fechaEntrega || '';
       document.getElementById('edit-ubicaciones').value = p.ubicaciones || '';
-      document.getElementById('edit-total').value = p.total || 0;
+      document.getElementById('edit-total').value = p.total ?? 0;
 
-      // Cargar mockups existentes
       imagenesEdicion = (p.mockupUrls && Array.isArray(p.mockupUrls)) ? [...p.mockupUrls] : [];
       renderizarPreviewsEdicion();
 
-      // Cargar estructura de prendas
       const checkPendiente = document.getElementById('edit-check-tallas-pendientes');
       const contenedor = document.getElementById('contenedor-variantes-edit');
       contenedor.innerHTML = '';
@@ -1346,12 +1354,12 @@
 
       document.getElementById('modal-pagos-id').value = p.id;
       document.getElementById('modal-pagos-subtitulo').innerText = `${p.id} — ${p.cliente}`;
-      document.getElementById('modal-pagos-total').innerText = `$${p.total}`;
+      document.getElementById('modal-pagos-total').innerText = `$${formatDinero(p.total)}`;
       
       const pagado = totalPagado(p);
       const saldo = saldoPendiente(p);
-      document.getElementById('modal-pagos-pagado').innerText = `$${pagado}`;
-      document.getElementById('modal-pagos-saldo').innerText = `$${saldo}`;
+      document.getElementById('modal-pagos-pagado').innerText = `$${formatDinero(pagado)}`;
+      document.getElementById('modal-pagos-saldo').innerText = `$${formatDinero(saldo)}`;
 
       const lista = document.getElementById('modal-pagos-lista');
       lista.innerHTML = '';
@@ -1362,7 +1370,7 @@
           item.className = 'flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700';
           item.innerHTML = `
             <div>
-              <span class="font-bold text-white">$${pago.monto}</span>
+              <span class="font-bold text-white">$${formatDinero(pago.monto)}</span>
               <span class="text-[10px] text-slate-400 ml-2">(${pago.metodo})</span>
             </div>
             <span class="text-[10px] text-slate-400">${pago.fecha || ''}</span>
@@ -1374,11 +1382,11 @@
       }
 
       const formAbono = document.getElementById('form-nuevo-abono');
-      if (saldo <= 0) {
+      if (saldo <= 0.001) {
         formAbono.classList.add('hidden');
       } else {
         formAbono.classList.remove('hidden');
-        document.getElementById('input-abono-monto').value = saldo;
+        document.getElementById('input-abono-monto').value = saldo.toString();
       }
 
       document.getElementById('modal-pagos').classList.remove('hidden');
