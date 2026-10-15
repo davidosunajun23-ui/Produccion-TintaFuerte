@@ -445,7 +445,7 @@
   <!-- MODAL: STOCK PENDIENTE GENERAL (INFORME) -->
   <!-- ========================================== -->
   <div id="modal-stock-general" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-3xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-4xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4 no-print">
         <div class="flex items-center gap-2">
           <div class="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
@@ -459,7 +459,7 @@
         <button onclick="cerrarModalStockGeneral()" class="text-slate-400 hover:text-white text-xl">&times;</button>
       </div>
 
-      <!-- CONTENIDO DEL INFORME CONSOLIDADO -->
+      <!-- CONTENIDO DEL INFORME CONSOLIDADO AGRUPADO -->
       <div id="contenido-stock-general" class="space-y-4 text-xs">
         <div class="text-center py-8 text-slate-400">Calculando prendas pendientes...</div>
       </div>
@@ -863,14 +863,12 @@
     window.agregarFilaVariante = function(contenedorId, modo, datos = { modelo: '', color: '', talla: 'M', cant: '', origen: 'comprar' }) {
       const cont = document.getElementById(contenedorId);
 
-      // Opciones de Prenda / Modelo
       let opcionesPrenda = '<option value="">Prenda / Modelo</option>';
       catalogo.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(cat => {
         const sel = (datos.modelo && datos.modelo.toLowerCase() === cat.modelo.toLowerCase()) ? 'selected' : '';
         opcionesPrenda += `<option value="${cat.modelo}" ${sel}>${cat.modelo}</option>`;
       });
 
-      // Opciones de Color según la prenda seleccionada
       const coloresDisponibles = obtenerColoresDeModelo(datos.modelo);
       let opcionesColor = '<option value="">Color</option>';
       if (coloresDisponibles.length > 0) {
@@ -882,7 +880,6 @@
         opcionesColor += `<option value="${datos.color}" selected>${datos.color}</option>`;
       }
 
-      // Opciones de Talla estandarizadas
       let opcionesTalla = '';
       TALLAS_DISPONIBLES.forEach(t => {
         const sel = (datos.talla === t) ? 'selected' : '';
@@ -977,7 +974,6 @@
       if (tallasPendientes || variantes.length === 0) {
         textoPrendas = `Prendas y tallas pendientes por confirmar`;
       } else {
-        // Agrupar visualmente por modelo para el texto de resumen legible
         const partesTexto = variantes.map(v => {
           const extra = v.origen === 'cliente' ? ' [Cliente]' : '';
           return `${v.cant} ${v.modelo} ${v.color} (${v.talla})${extra}`;
@@ -985,7 +981,6 @@
         textoPrendas = `${totalPiezas} Prendas: ` + partesTexto.join(' / ');
       }
 
-      // Generar automáticamente la nota de prendas faltantes por comprar
       let textoPendientesAuto = '';
       if (totalPorComprar > 0) {
         const faltantes = variantes.filter(v => v.origen === 'comprar').map(v => `${v.cant} ${v.modelo} ${v.color} (${v.talla})`).join(', ');
@@ -1004,7 +999,7 @@
     }
 
     // ====================================================
-    // INFORME CONSOLIDADO: STOCK PENDIENTE GENERAL
+    // INFORME CONSOLIDADO: AGRUPADO POR PRENDA + COLOR
     // ====================================================
     let resumenStockWhatsAppGlobal = "";
 
@@ -1039,6 +1034,7 @@
       const contenedor = document.getElementById('contenido-stock-general');
       const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
 
+      // AGRUPACIÓN: Clave = Modelo + Color (para no repetir filas por cada talla)
       const mapaConsolidado = {};
       const pedidosViejosConPendientes = [];
       let totalPrendasPorComprar = 0;
@@ -1048,23 +1044,30 @@
           p.prendasEstructura.variantes.forEach(v => {
             if (v.origen === 'comprar') {
               const cant = parseInt(v.cant) || 0;
-              const clave = `${v.modelo}__${v.color}__${v.talla}`;
+              const clave = `${v.modelo}__${v.color}`;
+              
               if (!mapaConsolidado[clave]) {
                 mapaConsolidado[clave] = {
                   modelo: v.modelo,
                   color: v.color,
-                  talla: v.talla,
                   total: 0,
-                  detalles: []
+                  tallas: {}, // Objeto con totales por talla: { 'CH': 4, 'M': 2, ... }
+                  pedidosMap: {} // { 'TF-534': { cliente: '...', cant: 6 } }
                 };
               }
+
               mapaConsolidado[clave].total += cant;
-              mapaConsolidado[clave].detalles.push({ id: p.id, cliente: p.cliente, cant });
+              mapaConsolidado[clave].tallas[v.talla] = (mapaConsolidado[clave].tallas[v.talla] || 0) + cant;
+
+              if (!mapaConsolidado[clave].pedidosMap[p.id]) {
+                mapaConsolidado[clave].pedidosMap[p.id] = { cliente: p.cliente, cant: 0 };
+              }
+              mapaConsolidado[clave].pedidosMap[p.id].cant += cant;
+
               totalPrendasPorComprar += cant;
             }
           });
         } else if (p.prendasPendientes && p.prendasPendientes.trim() !== '') {
-          // Retrocompatibilidad con pedidos anteriores en texto libre
           pedidosViejosConPendientes.push({
             id: p.id,
             cliente: p.cliente,
@@ -1088,12 +1091,12 @@
       }
 
       let html = `
-        <div class="bg-amber-950/30 border border-amber-500/40 p-3 rounded-xl flex justify-between items-center">
+        <div class="bg-amber-950/30 border border-amber-500/40 p-3.5 rounded-xl flex justify-between items-center">
           <div>
             <span class="text-amber-400 font-bold block text-sm">Total de Piezas a Comprar: ${totalPrendasPorComprar} piezas</span>
             <span class="text-[11px] text-slate-300">Sumatoria consolidada de todos los pedidos activos</span>
           </div>
-          <span class="text-xs bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-full">${itemsConsolidados.length} Combinaciones</span>
+          <span class="text-xs bg-amber-500 text-slate-950 font-black px-3 py-1 rounded-full">${itemsConsolidados.length} Modelos / Colores</span>
         </div>
       `;
 
@@ -1110,8 +1113,8 @@
                   <tr>
                     <th class="py-2.5 px-3">Prenda / Modelo</th>
                     <th class="py-2.5 px-3">Color</th>
-                    <th class="py-2.5 px-3 text-center">Talla</th>
-                    <th class="py-2.5 px-3 text-right">Cantidad</th>
+                    <th class="py-2.5 px-3">Corrida de Tallas</th>
+                    <th class="py-2.5 px-3 text-right">Total a Comprar</th>
                     <th class="py-2.5 px-3">Destino (Pedidos)</th>
                   </tr>
                 </thead>
@@ -1119,19 +1122,36 @@
         `;
 
         itemsConsolidados.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(item => {
-          const destinosTexto = item.detalles.map(d => `${d.cant} para ${d.cliente} (${d.id})`).join(', ');
+          // Ordenar tallas según el orden estándar: CH, M, G, XG, 2XG, 3XG, Unitalla
+          const tallasOrdenadas = Object.keys(item.tallas).sort((t1, t2) => {
+            const i1 = TALLAS_DISPONIBLES.indexOf(t1);
+            const i2 = TALLAS_DISPONIBLES.indexOf(t2);
+            return (i1 !== -1 && i2 !== -1) ? i1 - i2 : t1.localeCompare(t2);
+          });
+
+          const corridaHtml = tallasOrdenadas.map(t => {
+            return `<span class="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-slate-200 font-bold inline-flex items-center gap-1"><strong>(${item.tallas[t]})</strong> <span class="text-sky-400">${t}</span></span>`;
+          }).join(' ');
+
+          const corridaTextoWA = tallasOrdenadas.map(t => `(${item.tallas[t]}) ${t}`).join(', ');
+
+          const destinos = Object.entries(item.pedidosMap).map(([id, info]) => {
+            return `${info.cant} para ${info.cliente} (${id})`;
+          }).join(' • ');
 
           html += `
             <tr class="hover:bg-slate-800/40">
-              <td class="py-2 px-3 font-bold text-white">${item.modelo}</td>
-              <td class="py-2 px-3 text-slate-300">${item.color}</td>
-              <td class="py-2 px-3 text-center font-bold text-sky-400">${item.talla}</td>
-              <td class="py-2 px-3 text-right font-black text-amber-400 text-sm">${item.total}</td>
-              <td class="py-2 px-3 text-[11px] text-slate-400">${destinosTexto}</td>
+              <td class="py-2.5 px-3 font-bold text-white">${item.modelo}</td>
+              <td class="py-2.5 px-3 text-slate-300 font-medium">${item.color}</td>
+              <td class="py-2.5 px-3">
+                <div class="flex flex-wrap gap-1.5">${corridaHtml}</div>
+              </td>
+              <td class="py-2.5 px-3 text-right font-black text-amber-400 text-sm whitespace-nowrap">${item.total}</td>
+              <td class="py-2.5 px-3 text-[11px] text-slate-400">${destinos}</td>
             </tr>
           `;
 
-          textoWA += `• *${item.total}* ${item.modelo} — ${item.color} (Talla ${item.talla})\n`;
+          textoWA += `• *${item.modelo}* — ${item.color} (*Total: ${item.total}*)\n  ↳ ${corridaTextoWA}\n`;
         });
 
         html += `
