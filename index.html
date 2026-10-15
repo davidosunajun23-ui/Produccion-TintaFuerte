@@ -137,7 +137,7 @@
                 <th class="py-3 px-3 w-16">Folio</th>
                 <th class="py-3 px-3 min-w-[140px]">Cliente</th>
                 <th class="py-3 px-3 min-w-[130px]">Prioridad / Fecha</th>
-                <th class="py-3 px-3 min-w-[280px]">Prendas & Tallas</th>
+                <th class="py-3 px-3 min-w-[320px]">Prendas & Tallas</th>
                 <th class="py-3 px-3 w-36">Estatus</th>
                 <th class="py-3 px-2.5 text-right w-24">Total</th>
                 <th class="py-3 px-2.5 text-right w-24">Pagado</th>
@@ -194,7 +194,7 @@
           </div>
         </div>
 
-        <!-- ESTRUCTURA MODULAR: PRENDA INDEPENDIENTE POR CADA RENGLÓN -->
+        <!-- ESTRUCTURA MODULAR CON TOTAL DINÁMICO -->
         <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="font-bold text-blue-300 flex items-center gap-1.5">
@@ -891,31 +891,20 @@
       const div = document.createElement('div');
       div.className = 'fila-variante grid grid-cols-12 gap-1.5 items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700/60';
       div.innerHTML = `
-        <!-- PRENDA / MODELO POR RENGLÓN -->
         <select onchange="window.actualizarColoresFila(this)" class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold var-modelo-select">
           ${opcionesPrenda}
         </select>
-
-        <!-- COLOR DEPENDIENTE DE LA PRENDA DE ESTA FILA -->
         <select class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium">
           ${opcionesColor}
         </select>
-
-        <!-- TALLA -->
         <select class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-talla-select">
           ${opcionesTalla}
         </select>
-
-        <!-- CANTIDAD -->
         <input type="number" min="1" placeholder="Cant." value="${datos.cant || ''}" oninput="recalcularTotalPrendasFormulario('${modo}')" class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-cant">
-
-        <!-- ORIGEN / SUMINISTRO -->
         <select class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ${origenActual === 'cliente' ? 'text-emerald-400' : 'text-amber-400'}" onchange="this.className = 'col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ' + (this.value === 'cliente' ? 'text-emerald-400' : 'text-amber-400')">
           <option value="comprar" class="text-amber-400" ${origenActual === 'comprar' ? 'selected' : ''}>🔴 Comprar</option>
           <option value="cliente" class="text-emerald-400" ${origenActual === 'cliente' ? 'selected' : ''}>🟢 Cliente</option>
         </select>
-
-        <!-- ELIMINAR -->
         <button type="button" onclick="eliminarFilaVariante(this, '${modo}')" class="col-span-1 text-slate-500 hover:text-rose-400 text-center text-sm font-bold" title="Eliminar">&times;</button>
       `;
       cont.appendChild(div);
@@ -999,6 +988,119 @@
     }
 
     // ====================================================
+    // RENDERIZADO VISUAL ELEGANTE Y COMPACTO DE PRENDAS
+    // ====================================================
+    window.toggleVerMasPrendas = function(idUnico) {
+      const extras = document.getElementById(`prendas-extra-${idUnico}`);
+      const btn = document.getElementById(`btn-toggle-prendas-${idUnico}`);
+      if (!extras || !btn) return;
+
+      if (extras.classList.contains('hidden')) {
+        extras.classList.remove('hidden');
+        btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i> Ver menos';
+      } else {
+        extras.classList.add('hidden');
+        const cantidad = extras.getAttribute('data-total-extras') || '';
+        btn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> Ver ${cantidad} más`;
+      }
+    };
+
+    function renderizarHtmlPrendas(pedido, contexto = 'tabla') {
+      // 1. Si es formato antiguo en texto libre o sin variantes estructuradas
+      if (!pedido.prendasEstructura || !Array.isArray(pedido.prendasEstructura.variantes) || pedido.prendasEstructura.variantes.length === 0) {
+        return `<div class="text-xs text-slate-200 font-medium leading-relaxed">${pedido.prendas || 'Sin prendas registradas'}</div>`;
+      }
+
+      const est = pedido.prendasEstructura;
+      if (est.tallasPendientes) {
+        return `
+          <div class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-clock"></i> ${est.cantTotal || ''} Prendas (Tallas pendientes por confirmar)
+          </div>
+        `;
+      }
+
+      // 2. Agrupación por Modelo + Color + Origen
+      const mapaAgrupado = {};
+      est.variantes.forEach(v => {
+        const origen = v.origen || 'comprar';
+        const clave = `${v.modelo}__${v.color}__${origen}`;
+        if (!mapaAgrupado[clave]) {
+          mapaAgrupado[clave] = {
+            modelo: v.modelo,
+            color: v.color,
+            origen: origen,
+            totalPiezas: 0,
+            tallas: {}
+          };
+        }
+        const cant = parseInt(v.cant) || 0;
+        mapaAgrupado[clave].totalPiezas += cant;
+        mapaAgrupado[clave].tallas[v.talla] = (mapaAgrupado[clave].tallas[v.talla] || 0) + cant;
+      });
+
+      const grupos = Object.values(mapaAgrupado);
+      const totalGlobal = est.cantTotal || grupos.reduce((acc, g) => acc + g.totalPiezas, 0);
+
+      // 3. Generación de los renglones limpios
+      const renglonesHtml = grupos.map(g => {
+        const tallasOrdenadas = Object.keys(g.tallas).sort((t1, t2) => {
+          const i1 = TALLAS_DISPONIBLES.indexOf(t1);
+          const i2 = TALLAS_DISPONIBLES.indexOf(t2);
+          return (i1 !== -1 && i2 !== -1) ? i1 - i2 : t1.localeCompare(t2);
+        });
+
+        const corridaHtml = tallasOrdenadas.map(t => {
+          return `<span class="bg-slate-900 border border-slate-700/80 px-1.5 py-0.2 rounded text-[11px] font-bold text-slate-200"><strong>(${g.tallas[t]})</strong> <span class="text-sky-400">${t}</span></span>`;
+        }).join(' ');
+
+        const badgeOrigen = g.origen === 'cliente'
+          ? `<span class="text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold">Cliente</span>`
+          : '';
+
+        return `
+          <div class="flex flex-wrap items-center gap-1.5 leading-snug py-0.5">
+            <span class="font-bold text-white text-xs">${g.modelo}</span>
+            <span class="text-slate-300 text-xs">${g.color}</span>
+            <div class="inline-flex flex-wrap gap-1 items-center">${corridaHtml}</div>
+            ${badgeOrigen}
+          </div>
+        `;
+      });
+
+      // 4. Encabezado con total de prendas
+      const encabezado = `
+        <div class="text-[11px] font-black text-blue-400 uppercase tracking-wide flex items-center gap-1 mb-1">
+          <i class="fa-solid fa-shirt"></i> ${totalGlobal} Prendas en Total:
+        </div>
+      `;
+
+      // 5. Si excede de 3 líneas, mostrar las primeras 3 y colapsar el resto
+      const LIMITE = 3;
+      if (renglonesHtml.length <= LIMITE) {
+        return `<div>${encabezado}<div class="space-y-0.5">${renglonesHtml.join('')}</div></div>`;
+      } else {
+        const idUnico = `${contexto}-${pedido.id}-${Math.floor(Math.random()*1000)}`;
+        const visibles = renglonesHtml.slice(0, LIMITE).join('');
+        const extras = renglonesHtml.slice(LIMITE).join('');
+        const cantidadRestante = renglonesHtml.length - LIMITE;
+
+        return `
+          <div>
+            ${encabezado}
+            <div class="space-y-0.5">${visibles}</div>
+            <div id="prendas-extra-${idUnico}" data-total-extras="${cantidadRestante}" class="hidden space-y-0.5 pt-0.5 border-t border-slate-800/80 mt-1">
+              ${extras}
+            </div>
+            <button id="btn-toggle-prendas-${idUnico}" onclick="window.toggleVerMasPrendas('${idUnico}')" class="text-[11px] font-bold text-sky-400 hover:text-sky-300 mt-1 inline-flex items-center gap-1">
+              <i class="fa-solid fa-chevron-down"></i> Ver ${cantidadRestante} más
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // ====================================================
     // INFORME CONSOLIDADO: AGRUPADO POR PRENDA + COLOR
     // ====================================================
     let resumenStockWhatsAppGlobal = "";
@@ -1034,7 +1136,6 @@
       const contenedor = document.getElementById('contenido-stock-general');
       const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
 
-      // AGRUPACIÓN: Clave = Modelo + Color (para no repetir filas por cada talla)
       const mapaConsolidado = {};
       const pedidosViejosConPendientes = [];
       let totalPrendasPorComprar = 0;
@@ -1051,8 +1152,8 @@
                   modelo: v.modelo,
                   color: v.color,
                   total: 0,
-                  tallas: {}, // Objeto con totales por talla: { 'CH': 4, 'M': 2, ... }
-                  pedidosMap: {} // { 'TF-534': { cliente: '...', cant: 6 } }
+                  tallas: {},
+                  pedidosMap: {}
                 };
               }
 
@@ -1122,7 +1223,6 @@
         `;
 
         itemsConsolidados.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(item => {
-          // Ordenar tallas según el orden estándar: CH, M, G, XG, 2XG, 3XG, Unitalla
           const tallasOrdenadas = Object.keys(item.tallas).sort((t1, t2) => {
             const i1 = TALLAS_DISPONIBLES.indexOf(t1);
             const i2 = TALLAS_DISPONIBLES.indexOf(t2);
@@ -1308,7 +1408,7 @@
     }
 
     // ====================================================
-    // VISTA TALLER
+    // VISTA TALLER (CON PRENDAS AGRUPADAS Y COMPACTAS)
     // ====================================================
     function renderizarTaller() {
       const grid = document.getElementById('grid-taller');
@@ -1370,9 +1470,8 @@
             ${galeriaHtml}
 
             <div class="p-3 space-y-2 text-xs">
-              <div class="bg-slate-900/80 p-2 rounded border border-slate-700/60">
-                <span class="text-slate-400 block font-semibold text-[11px] mb-0.5"><i class="fa-solid fa-shirt text-blue-400"></i> PRENDAS Y TALLAS:</span>
-                <p class="text-white font-semibold text-xs leading-snug">${p.prendas}</p>
+              <div class="bg-slate-900/80 p-2.5 rounded border border-slate-700/60">
+                ${renderizarHtmlPrendas(p, 'taller')}
               </div>
 
               ${tienePendiente ? `
@@ -1408,7 +1507,7 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR
+    // VISTA MOSTRADOR (CON PRENDAS AGRUPADAS Y COMPACTAS)
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
@@ -1442,27 +1541,32 @@
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-70 bg-slate-900/40' : ''}`;
         tr.innerHTML = `
-          <td class="py-3 px-3 font-mono font-bold ${esCerrado ? 'text-slate-500' : 'text-blue-400'} whitespace-nowrap align-middle">${p.id}</td>
+          <!-- FOLIO -->
+          <td class="py-3 px-3 font-mono font-bold ${esCerrado ? 'text-slate-500' : 'text-blue-400'} whitespace-nowrap align-top">${p.id}</td>
           
-          <td class="py-3 px-3 align-middle">
+          <!-- CLIENTE -->
+          <td class="py-3 px-3 align-top">
             <div class="font-bold text-white leading-tight">${p.cliente}</div>
-            <div class="text-[11px] text-slate-400 leading-tight">${p.telefono || 'Sin tel'}</div>
+            <div class="text-[11px] text-slate-400 leading-tight mt-0.5">${p.telefono || 'Sin tel'}</div>
           </td>
 
-          <td class="py-3 px-3 whitespace-nowrap align-middle">
+          <!-- PRIORIDAD / FECHA -->
+          <td class="py-3 px-3 whitespace-nowrap align-top">
             ${infoFecha.tieneFecha ? infoFecha.badgeHtml : '<span class="text-slate-600 text-xs">—</span>'}
           </td>
 
-          <td class="py-3 px-3 align-middle">
-            <div class="text-xs text-slate-200 font-medium leading-relaxed">${p.prendas}</div>
+          <!-- PRENDAS Y TALLAS COMPACTAS Y AGRUPADAS -->
+          <td class="py-3 px-3 align-top min-w-[280px]">
+            ${renderizarHtmlPrendas(p, 'tabla')}
             ${tienePendiente ? `
-              <div class="text-[11px] text-amber-400 font-medium mt-0.5 flex items-center gap-1 leading-tight">
+              <div class="text-[11px] text-amber-400 font-medium mt-1 flex items-center gap-1 leading-tight">
                 <i class="fa-solid fa-clock"></i> ${p.prendasPendientes}
               </div>
             ` : ''}
           </td>
 
-          <td class="py-3 px-3 whitespace-nowrap align-middle">
+          <!-- ESTATUS -->
+          <td class="py-3 px-3 whitespace-nowrap align-top">
             <select onchange="window.actualizarEstatus('${p.id}', this.value)" class="bg-slate-900 text-xs border border-slate-700 rounded p-1.5 text-slate-200 focus:ring-0">
               <option value="Listo para Máquina" ${p.estatus === 'Listo para Máquina' ? 'selected' : ''}>🔵 Máquina</option>
               <option value="Comprando Prendas / Preprensa" ${p.estatus === 'Comprando Prendas / Preprensa' ? 'selected' : ''}>🟠 Esperando</option>
@@ -1471,14 +1575,19 @@
             </select>
           </td>
 
-          <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-middle">$${formatDinero(p.total)}</td>
-          <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-middle">$${formatDinero(pagado)}</td>
+          <!-- TOTAL -->
+          <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-top">$${formatDinero(p.total)}</td>
 
-          <td class="py-3 px-2.5 text-right font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'} whitespace-nowrap align-middle">
+          <!-- PAGADO -->
+          <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-top">$${formatDinero(pagado)}</td>
+
+          <!-- SALDO -->
+          <td class="py-3 px-2.5 text-right font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'} whitespace-nowrap align-top">
             ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + formatDinero(saldo)}
           </td>
 
-          <td class="py-3 px-3 text-center whitespace-nowrap align-middle">
+          <!-- ACCIONES -->
+          <td class="py-3 px-3 text-center whitespace-nowrap align-top">
             <div class="inline-flex items-center gap-1.5">
               <button id="btn-copy-${p.id}" onclick="window.copiarResumenJefe('${p.id}')" class="bg-emerald-700/40 hover:bg-emerald-600/60 text-emerald-300 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition" title="Copiar resumen para WhatsApp">
                 <i class="fa-solid fa-copy"></i> Resumen
@@ -1502,7 +1611,7 @@
       });
     }
 
-    // COPIAR RESUMEN PARA WHATSAPP
+    // COPIAR RESUMEN PARA WHATSAPP (AGRUPADO LIMPIO)
     window.copiarResumenJefe = function(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
@@ -1517,9 +1626,28 @@
         if (est.tallasPendientes || !est.variantes || est.variantes.length === 0) {
           bloquePrendas = `${est.cantTotal || ''} Prendas (Tallas pendientes por confirmar)`;
         } else {
-          bloquePrendas = `${est.cantTotal} Prendas en total:\n` + est.variantes.map(v => {
-            const extra = v.origen === 'cliente' ? ' [Cliente]' : '';
-            return `• ${v.cant} ${v.modelo} ${v.color} (${v.talla})${extra}`;
+          // Agrupar por Modelo + Color + Origen
+          const mapa = {};
+          est.variantes.forEach(v => {
+            const origen = v.origen || 'comprar';
+            const clave = `${v.modelo}__${v.color}__${origen}`;
+            if (!mapa[clave]) {
+              mapa[clave] = { modelo: v.modelo, color: v.color, origen: origen, total: 0, tallas: {} };
+            }
+            const cant = parseInt(v.cant) || 0;
+            mapa[clave].total += cant;
+            mapa[clave].tallas[v.talla] = (mapa[clave].tallas[v.talla] || 0) + cant;
+          });
+
+          bloquePrendas = `${est.cantTotal} Prendas en total:\n` + Object.values(mapa).map(g => {
+            const tallasOrdenadas = Object.keys(g.tallas).sort((t1, t2) => {
+              const i1 = TALLAS_DISPONIBLES.indexOf(t1);
+              const i2 = TALLAS_DISPONIBLES.indexOf(t2);
+              return (i1 !== -1 && i2 !== -1) ? i1 - i2 : t1.localeCompare(t2);
+            });
+            const corrida = tallasOrdenadas.map(t => `(${g.tallas[t]}) ${t}`).join(', ');
+            const extra = g.origen === 'cliente' ? ' [Cliente]' : '';
+            return `• ${g.total} ${g.modelo} ${g.color}: ${corrida}${extra}`;
           }).join('\n');
         }
       } else {
