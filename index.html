@@ -159,7 +159,7 @@
   <!-- MODAL: REGISTRAR NUEVO PEDIDO -->
   <!-- ========================================== -->
   <div id="modal-nuevo-pedido" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-3xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
           <i class="fa-solid fa-cart-flatbed text-emerald-400"></i> Registrar Pedido
@@ -194,11 +194,11 @@
           </div>
         </div>
 
-        <!-- ESTRUCTURA MODULAR DE PRENDAS Y TALLAS CON CATÁLOGO -->
+        <!-- ESTRUCTURA MODULAR: PRENDA INDEPENDIENTE POR CADA RENGLÓN -->
         <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="font-bold text-blue-300 flex items-center gap-1.5">
-              <i class="fa-solid fa-shirt"></i> Detalle de Prendas y Tallas
+              <i class="fa-solid fa-shirt"></i> Detalle de Prendas, Variantes y Suministro
             </span>
             <label class="inline-flex items-center gap-1.5 text-amber-300 font-semibold cursor-pointer">
               <input type="checkbox" id="check-tallas-pendientes" onchange="toggleTallasPendientes(this, 'nuevo')" class="rounded bg-slate-800 border-slate-600 text-amber-500 focus:ring-0">
@@ -206,27 +206,19 @@
             </label>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Total de Prendas</label>
-              <input type="number" id="input-cant-total" readonly class="w-full bg-slate-800/60 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="Auto">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 font-medium">Total de prendas sumadas:</span>
+              <span id="badge-total-nuevo" class="bg-blue-600 text-white font-black px-2.5 py-0.5 rounded-full text-xs">0</span>
             </div>
-            <div class="md:col-span-2">
-              <label class="block text-[11px] text-slate-400 mb-1">Prenda / Modelo del Catálogo *</label>
-              <div class="flex gap-2">
-                <select id="select-modelo-prenda" onchange="alCambiarPrenda('nuevo')" required class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-semibold">
-                  <option value="">-- Seleccionar Prenda --</option>
-                </select>
-                <button type="button" onclick="abrirModalCatalogo()" class="px-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300" title="Editar catálogo">
-                  <i class="fa-solid fa-gear"></i>
-                </button>
-              </div>
-            </div>
+            <button type="button" onclick="abrirModalCatalogo()" class="text-[11px] text-sky-400 hover:text-sky-300 flex items-center gap-1">
+              <i class="fa-solid fa-tags"></i> Gestionar Catálogo
+            </button>
           </div>
 
           <div id="seccion-variantes-nuevo" class="space-y-2 pt-1 border-t border-slate-800">
             <div class="flex justify-between items-center">
-              <span class="text-[11px] text-slate-400 font-semibold">Desglose de color, tallas y suministro:</span>
+              <span class="text-[11px] text-slate-400 font-semibold">Prenda / Modelo &nbsp;➔&nbsp; Color &nbsp;➔&nbsp; Talla &nbsp;➔&nbsp; Cantidad &nbsp;➔&nbsp; Suministro:</span>
               <button type="button" onclick="agregarFilaVariante('contenedor-variantes-nuevo', 'nuevo')" class="text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1">
                 <i class="fa-solid fa-plus-circle"></i> Agregar Variante
               </button>
@@ -293,7 +285,7 @@
   <!-- MODAL: EDITAR PEDIDO / MOCKUPS / TALLAS -->
   <!-- ========================================== -->
   <div id="modal-editar-pedido" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-3xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
         <div>
           <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -333,7 +325,7 @@
           </div>
         </div>
 
-        <!-- EDICIÓN MODULAR DE PRENDAS Y TALLAS -->
+        <!-- EDICIÓN MODULAR DE PRENDAS Y TALLAS CON PRENDA POR FILA -->
         <div class="bg-blue-950/20 border border-blue-500/40 p-3 rounded-xl space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="font-bold text-blue-300 flex items-center gap-1.5">
@@ -345,22 +337,19 @@
             </label>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Total Prendas</label>
-              <input type="number" id="edit-cant-total" readonly class="w-full bg-slate-900/60 border border-slate-700 rounded-lg p-2 text-white font-bold" placeholder="Auto">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 font-medium">Total prendas:</span>
+              <span id="badge-total-edit" class="bg-sky-600 text-white font-black px-2.5 py-0.5 rounded-full text-xs">0</span>
             </div>
-            <div class="md:col-span-2">
-              <label class="block text-[11px] text-slate-400 mb-1">Prenda / Modelo del Catálogo *</label>
-              <select id="edit-select-modelo-prenda" onchange="alCambiarPrenda('edit')" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-semibold">
-                <option value="">-- Seleccionar Prenda --</option>
-              </select>
-            </div>
+            <button type="button" onclick="abrirModalCatalogo()" class="text-[11px] text-sky-400 hover:text-sky-300 flex items-center gap-1">
+              <i class="fa-solid fa-tags"></i> Gestionar Catálogo
+            </button>
           </div>
 
           <div id="seccion-variantes-edit" class="space-y-2 pt-1 border-t border-slate-800">
             <div class="flex justify-between items-center">
-              <span class="text-[11px] text-slate-400 font-semibold">Desglose de color, tallas y suministro:</span>
+              <span class="text-[11px] text-slate-400 font-semibold">Prenda / Modelo &nbsp;➔&nbsp; Color &nbsp;➔&nbsp; Talla &nbsp;➔&nbsp; Cantidad &nbsp;➔&nbsp; Suministro:</span>
               <button type="button" onclick="agregarFilaVariante('contenedor-variantes-edit', 'edit')" class="text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1">
                 <i class="fa-solid fa-plus-circle"></i> Agregar Variante
               </button>
@@ -553,7 +542,7 @@
     </div>
   </div>
 
-  <!-- MODAL GESTIONAR PRENDAS (INDIVIDUAL POR ORDEN) -->
+  <!-- MODAL GESTIONAR STOCK INDIVIDUAL POR ORDEN -->
   <div id="modal-gestionar-prendas" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-3">
@@ -692,12 +681,10 @@
         catalogo.push({ id: docSnap.id, ...docSnap.data() });
       });
 
-      // Si el catálogo está vacío en la nube, inicializamos sugerencias comunes
       if (catalogo.length === 0 && snapshot.metadata.fromCache === false) {
         inicializarCatalogoBase();
       } else {
         renderizarListaCatalogo();
-        actualizarSelectsPrendas();
       }
     }, (error) => {
       console.error("Error al sincronizar catálogo:", error);
@@ -705,7 +692,7 @@
 
     async function inicializarCatalogoBase() {
       const base = [
-        { modelo: "Optima 23", colores: ["Negro", "Blanco", "Azul Marino", "Rojo", "Gris Jaspe"] },
+        { modelo: "Optima Algodón Peinado Premium", colores: ["Negro", "Blanco", "Azul Marino", "Rojo", "Gris Jaspe"] },
         { modelo: "Polo 900", colores: ["Negro", "Blanco", "Marino", "Carbón", "Rojo"] },
         { modelo: "Polo 903", colores: ["Blanco", "Negro", "Beige", "Marino"] },
         { modelo: "Gorra Explosion", colores: ["Negro", "Azul Cielo", "Blanco", "Rojo"] },
@@ -842,55 +829,13 @@
       }
     };
 
-    function actualizarSelectsPrendas() {
-      const selects = [
-        document.getElementById('select-modelo-prenda'),
-        document.getElementById('edit-select-modelo-prenda')
-      ];
-
-      selects.forEach(select => {
-        if (!select) return;
-        const valorPrevio = select.value;
-        select.innerHTML = '<option value="">-- Seleccionar Prenda --</option>';
-        catalogo.forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item.modelo;
-          opt.textContent = item.modelo;
-          select.appendChild(opt);
-        });
-        if (valorPrevio) select.value = valorPrevio;
-      });
-    }
-
     function obtenerColoresDeModelo(modeloNombre) {
       const encontrado = catalogo.find(c => c.modelo.toLowerCase() === (modeloNombre || '').toLowerCase());
       return encontrado ? encontrado.colores : [];
     }
 
-    window.alCambiarPrenda = function(modo) {
-      const select = document.getElementById(modo === 'nuevo' ? 'select-modelo-prenda' : 'edit-select-modelo-prenda');
-      const colores = obtenerColoresDeModelo(select.value);
-
-      const contenedorId = modo === 'nuevo' ? 'contenedor-variantes-nuevo' : 'contenedor-variantes-edit';
-      const selectsColor = document.querySelectorAll(`#${contenedorId} .var-color-select`);
-      
-      selectsColor.forEach(s => {
-        const valActual = s.value;
-        s.innerHTML = '<option value="">Color</option>';
-        colores.forEach(col => {
-          const opt = document.createElement('option');
-          opt.value = col;
-          opt.textContent = col;
-          s.appendChild(opt);
-        });
-        if (valActual && colores.includes(valActual)) {
-          s.value = valActual;
-        }
-      });
-    };
-
     // ====================================================
-    // VARIANTES DINÁMICAS CON ORIGEN Y TALLAS ESTANDARIZADAS
+    // VARIANTES: PRENDA Y COLOR INDEPENDIENTES POR CADA FILA
     // ====================================================
     window.toggleTallasPendientes = function(checkbox, modo) {
       const contenedor = document.getElementById(modo === 'nuevo' ? 'seccion-variantes-nuevo' : 'seccion-variantes-edit');
@@ -901,14 +846,35 @@
       }
     };
 
-    window.agregarFilaVariante = function(contenedorId, modo, datos = { cant: '', color: '', talla: 'M', origen: 'comprar' }) {
-      const cont = document.getElementById(contenedorId);
-      const modeloPrenda = document.getElementById(modo === 'nuevo' ? 'select-modelo-prenda' : 'edit-select-modelo-prenda').value;
-      const colores = obtenerColoresDeModelo(modeloPrenda);
+    window.actualizarColoresFila = function(selectModelo) {
+      const fila = selectModelo.closest('.fila-variante');
+      const selectColor = fila.querySelector('.var-color-select');
+      const colores = obtenerColoresDeModelo(selectModelo.value);
 
+      selectColor.innerHTML = '<option value="">Color</option>';
+      colores.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        selectColor.appendChild(opt);
+      });
+    };
+
+    window.agregarFilaVariante = function(contenedorId, modo, datos = { modelo: '', color: '', talla: 'M', cant: '', origen: 'comprar' }) {
+      const cont = document.getElementById(contenedorId);
+
+      // Opciones de Prenda / Modelo
+      let opcionesPrenda = '<option value="">Prenda / Modelo</option>';
+      catalogo.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(cat => {
+        const sel = (datos.modelo && datos.modelo.toLowerCase() === cat.modelo.toLowerCase()) ? 'selected' : '';
+        opcionesPrenda += `<option value="${cat.modelo}" ${sel}>${cat.modelo}</option>`;
+      });
+
+      // Opciones de Color según la prenda seleccionada
+      const coloresDisponibles = obtenerColoresDeModelo(datos.modelo);
       let opcionesColor = '<option value="">Color</option>';
-      if (colores.length > 0) {
-        colores.forEach(c => {
+      if (coloresDisponibles.length > 0) {
+        coloresDisponibles.forEach(c => {
           const sel = (datos.color && datos.color.toLowerCase() === c.toLowerCase()) ? 'selected' : '';
           opcionesColor += `<option value="${c}" ${sel}>${c}</option>`;
         });
@@ -916,6 +882,7 @@
         opcionesColor += `<option value="${datos.color}" selected>${datos.color}</option>`;
       }
 
+      // Opciones de Talla estandarizadas
       let opcionesTalla = '';
       TALLAS_DISPONIBLES.forEach(t => {
         const sel = (datos.talla === t) ? 'selected' : '';
@@ -927,23 +894,28 @@
       const div = document.createElement('div');
       div.className = 'fila-variante grid grid-cols-12 gap-1.5 items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700/60';
       div.innerHTML = `
-        <!-- COLOR -->
-        <select class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium">
+        <!-- PRENDA / MODELO POR RENGLÓN -->
+        <select onchange="window.actualizarColoresFila(this)" class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold var-modelo-select">
+          ${opcionesPrenda}
+        </select>
+
+        <!-- COLOR DEPENDIENTE DE LA PRENDA DE ESTA FILA -->
+        <select class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium">
           ${opcionesColor}
         </select>
 
         <!-- TALLA -->
-        <select class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-talla-select">
+        <select class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-talla-select">
           ${opcionesTalla}
         </select>
 
         <!-- CANTIDAD -->
-        <input type="number" min="1" placeholder="Cant." value="${datos.cant || ''}" oninput="recalcularTotalPrendasFormulario('${modo}')" class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-cant">
+        <input type="number" min="1" placeholder="Cant." value="${datos.cant || ''}" oninput="recalcularTotalPrendasFormulario('${modo}')" class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-cant">
 
         <!-- ORIGEN / SUMINISTRO -->
-        <select class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ${origenActual === 'cliente' ? 'text-emerald-400' : 'text-amber-400'}" onchange="this.className = 'col-span-3 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ' + (this.value === 'cliente' ? 'text-emerald-400' : 'text-amber-400')">
+        <select class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ${origenActual === 'cliente' ? 'text-emerald-400' : 'text-amber-400'}" onchange="this.className = 'col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ' + (this.value === 'cliente' ? 'text-emerald-400' : 'text-amber-400')">
           <option value="comprar" class="text-amber-400" ${origenActual === 'comprar' ? 'selected' : ''}>🔴 Comprar</option>
-          <option value="cliente" class="text-emerald-400" ${origenActual === 'cliente' ? 'selected' : ''}>🟢 Del Cliente</option>
+          <option value="cliente" class="text-emerald-400" ${origenActual === 'cliente' ? 'selected' : ''}>🟢 Cliente</option>
         </select>
 
         <!-- ELIMINAR -->
@@ -966,20 +938,17 @@
 
     window.recalcularTotalPrendasFormulario = function(modo) {
       const contenedorId = modo === 'nuevo' ? 'contenedor-variantes-nuevo' : 'contenedor-variantes-edit';
-      const inputTotal = document.getElementById(modo === 'nuevo' ? 'input-cant-total' : 'edit-cant-total');
+      const badgeTotal = document.getElementById(modo === 'nuevo' ? 'badge-total-nuevo' : 'badge-total-edit');
       const filas = document.querySelectorAll(`#${contenedorId} .fila-variante`);
       let suma = 0;
       filas.forEach(f => {
         const cant = parseInt(f.querySelector('.var-cant').value) || 0;
         suma += cant;
       });
-      inputTotal.value = suma > 0 ? suma : '';
+      if (badgeTotal) badgeTotal.innerText = suma;
     };
 
     function recopilarPrendas(esNuevo) {
-      const prefijo = esNuevo ? 'input' : 'edit';
-      const modeloSelect = document.getElementById(esNuevo ? 'select-modelo-prenda' : 'edit-select-modelo-prenda');
-      const modelo = modeloSelect.value.trim();
       const checkPendiente = document.getElementById(esNuevo ? 'check-tallas-pendientes' : 'edit-check-tallas-pendientes');
       const tallasPendientes = checkPendiente ? checkPendiente.checked : false;
 
@@ -991,33 +960,35 @@
 
       if (!tallasPendientes) {
         filas.forEach(f => {
+          const mod = f.querySelector('.var-modelo-select').value.trim();
           const col = f.querySelector('.var-color-select').value.trim();
           const t = f.querySelector('.var-talla-select').value.trim();
           const c = parseInt(f.querySelector('.var-cant').value) || 0;
           const origen = f.querySelector('.var-origen-select').value;
-          if (c > 0 && col) {
-            variantes.push({ cant: c, color: col, talla: t, origen: origen });
+          if (c > 0 && mod) {
+            variantes.push({ modelo: mod, color: col || 'Único', talla: t, cant: c, origen: origen });
             totalPiezas += c;
             if (origen === 'comprar') totalPorComprar += c;
           }
         });
       }
 
-      let textoPrendas = `${totalPiezas > 0 ? totalPiezas : ''} ${modelo}`.trim();
+      let textoPrendas = '';
       if (tallasPendientes || variantes.length === 0) {
-        textoPrendas += ` (Tallas pendientes por confirmar)`;
+        textoPrendas = `Prendas y tallas pendientes por confirmar`;
       } else {
-        const desglose = variantes.map(v => {
-          const etiquetaOrigen = v.origen === 'cliente' ? ' [Cliente]' : '';
-          return `${v.cant} ${v.color} (${v.talla})${etiquetaOrigen}`;
-        }).join(' / ');
-        textoPrendas += `: ${desglose}`;
+        // Agrupar visualmente por modelo para el texto de resumen legible
+        const partesTexto = variantes.map(v => {
+          const extra = v.origen === 'cliente' ? ' [Cliente]' : '';
+          return `${v.cant} ${v.modelo} ${v.color} (${v.talla})${extra}`;
+        });
+        textoPrendas = `${totalPiezas} Prendas: ` + partesTexto.join(' / ');
       }
 
-      // Generar automáticamente la nota de prendas pendientes de stock
+      // Generar automáticamente la nota de prendas faltantes por comprar
       let textoPendientesAuto = '';
       if (totalPorComprar > 0) {
-        const faltantes = variantes.filter(v => v.origen === 'comprar').map(v => `${v.cant} ${v.color} (${v.talla})`).join(', ');
+        const faltantes = variantes.filter(v => v.origen === 'comprar').map(v => `${v.cant} ${v.modelo} ${v.color} (${v.talla})`).join(', ');
         textoPendientesAuto = `Falta comprar: ${faltantes}`;
       }
 
@@ -1025,7 +996,6 @@
         texto: textoPrendas,
         estructura: {
           cantTotal: totalPiezas,
-          modelo: modelo,
           tallasPendientes: tallasPendientes,
           variantes: variantes
         },
@@ -1069,21 +1039,19 @@
       const contenedor = document.getElementById('contenido-stock-general');
       const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
 
-      // Agrupación matemática: Mapa { "Modelo | Color | Talla": { modelo, color, talla, cant, pedidos: [{ id, cliente, cant }] } }
       const mapaConsolidado = {};
       const pedidosViejosConPendientes = [];
       let totalPrendasPorComprar = 0;
 
       activos.forEach(p => {
         if (p.prendasEstructura && Array.isArray(p.prendasEstructura.variantes) && p.prendasEstructura.variantes.length > 0) {
-          const modelo = p.prendasEstructura.modelo || 'Sin Modelo';
           p.prendasEstructura.variantes.forEach(v => {
             if (v.origen === 'comprar') {
               const cant = parseInt(v.cant) || 0;
-              const clave = `${modelo}__${v.color}__${v.talla}`;
+              const clave = `${v.modelo}__${v.color}__${v.talla}`;
               if (!mapaConsolidado[clave]) {
                 mapaConsolidado[clave] = {
-                  modelo: modelo,
+                  modelo: v.modelo,
                   color: v.color,
                   talla: v.talla,
                   total: 0,
@@ -1096,7 +1064,7 @@
             }
           });
         } else if (p.prendasPendientes && p.prendasPendientes.trim() !== '') {
-          // Retrocompatibilidad con pedidos de texto libre
+          // Retrocompatibilidad con pedidos anteriores en texto libre
           pedidosViejosConPendientes.push({
             id: p.id,
             cliente: p.cliente,
@@ -1119,12 +1087,11 @@
         return;
       }
 
-      // Construcción del HTML y del texto de WhatsApp
       let html = `
         <div class="bg-amber-950/30 border border-amber-500/40 p-3 rounded-xl flex justify-between items-center">
           <div>
             <span class="text-amber-400 font-bold block text-sm">Total de Piezas a Comprar: ${totalPrendasPorComprar} piezas</span>
-            <span class="text-[11px] text-slate-300">Sumatoria automática entre todos los pedidos activos</span>
+            <span class="text-[11px] text-slate-300">Sumatoria consolidada de todos los pedidos activos</span>
           </div>
           <span class="text-xs bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-full">${itemsConsolidados.length} Combinaciones</span>
         </div>
@@ -1144,7 +1111,7 @@
                     <th class="py-2.5 px-3">Prenda / Modelo</th>
                     <th class="py-2.5 px-3">Color</th>
                     <th class="py-2.5 px-3 text-center">Talla</th>
-                    <th class="py-2.5 px-3 text-right">Cantidad a Comprar</th>
+                    <th class="py-2.5 px-3 text-right">Cantidad</th>
                     <th class="py-2.5 px-3">Destino (Pedidos)</th>
                   </tr>
                 </thead>
@@ -1175,11 +1142,10 @@
         `;
       }
 
-      // Si hay pedidos anteriores con notas de stock en texto libre
       if (pedidosViejosConPendientes.length > 0) {
         html += `
           <div class="mt-4 pt-3 border-t border-slate-700/80">
-            <h4 class="font-bold text-amber-400 text-xs mb-2">⚠️ Notas de Stock en Pedidos Anteriores (Formato Texto):</h4>
+            <h4 class="font-bold text-amber-400 text-xs mb-2">⚠️ Notas de Stock en Pedidos Anteriores:</h4>
             <div class="space-y-1.5">
         `;
         textoWA += `\n*⚠️ Pendientes registrados previamente:*\n`;
@@ -1456,21 +1422,17 @@
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-70 bg-slate-900/40' : ''}`;
         tr.innerHTML = `
-          <!-- FOLIO -->
           <td class="py-3 px-3 font-mono font-bold ${esCerrado ? 'text-slate-500' : 'text-blue-400'} whitespace-nowrap align-middle">${p.id}</td>
           
-          <!-- CLIENTE -->
           <td class="py-3 px-3 align-middle">
             <div class="font-bold text-white leading-tight">${p.cliente}</div>
             <div class="text-[11px] text-slate-400 leading-tight">${p.telefono || 'Sin tel'}</div>
           </td>
 
-          <!-- PRIORIDAD / FECHA -->
           <td class="py-3 px-3 whitespace-nowrap align-middle">
             ${infoFecha.tieneFecha ? infoFecha.badgeHtml : '<span class="text-slate-600 text-xs">—</span>'}
           </td>
 
-          <!-- PRENDAS Y TALLAS (MANTIENE VISTA VIEJA Y NUEVA) -->
           <td class="py-3 px-3 align-middle">
             <div class="text-xs text-slate-200 font-medium leading-relaxed">${p.prendas}</div>
             ${tienePendiente ? `
@@ -1480,7 +1442,6 @@
             ` : ''}
           </td>
 
-          <!-- ESTATUS -->
           <td class="py-3 px-3 whitespace-nowrap align-middle">
             <select onchange="window.actualizarEstatus('${p.id}', this.value)" class="bg-slate-900 text-xs border border-slate-700 rounded p-1.5 text-slate-200 focus:ring-0">
               <option value="Listo para Máquina" ${p.estatus === 'Listo para Máquina' ? 'selected' : ''}>🔵 Máquina</option>
@@ -1490,18 +1451,13 @@
             </select>
           </td>
 
-          <!-- TOTAL CON DECIMALES HABILITADOS -->
           <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-middle">$${formatDinero(p.total)}</td>
-
-          <!-- PAGADO CON DECIMALES HABILITADOS -->
           <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-middle">$${formatDinero(pagado)}</td>
 
-          <!-- SALDO CON DECIMALES HABILITADOS -->
           <td class="py-3 px-2.5 text-right font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'} whitespace-nowrap align-middle">
             ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + formatDinero(saldo)}
           </td>
 
-          <!-- ACCIONES -->
           <td class="py-3 px-3 text-center whitespace-nowrap align-middle">
             <div class="inline-flex items-center gap-1.5">
               <button id="btn-copy-${p.id}" onclick="window.copiarResumenJefe('${p.id}')" class="bg-emerald-700/40 hover:bg-emerald-600/60 text-emerald-300 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition" title="Copiar resumen para WhatsApp">
@@ -1536,14 +1492,14 @@
       const metodoTexto = primerPago && primerPago.metodo ? ` con ${primerPago.metodo}` : '';
 
       let bloquePrendas = '';
-      if (p.prendasEstructura && p.prendasEstructura.modelo) {
+      if (p.prendasEstructura && p.prendasEstructura.variantes) {
         const est = p.prendasEstructura;
         if (est.tallasPendientes || !est.variantes || est.variantes.length === 0) {
-          bloquePrendas = `${est.cantTotal} ${est.modelo} (Tallas pendientes por confirmar)`;
+          bloquePrendas = `${est.cantTotal || ''} Prendas (Tallas pendientes por confirmar)`;
         } else {
-          bloquePrendas = `${est.cantTotal} ${est.modelo}:\n` + est.variantes.map(v => {
+          bloquePrendas = `${est.cantTotal} Prendas en total:\n` + est.variantes.map(v => {
             const extra = v.origen === 'cliente' ? ' [Cliente]' : '';
-            return `• ${v.cant} ${v.color} (${v.talla})${extra}`;
+            return `• ${v.cant} ${v.modelo} ${v.color} (${v.talla})${extra}`;
           }).join('\n');
         }
       } else {
@@ -1716,9 +1672,7 @@
       const cont = document.getElementById('contenedor-variantes-nuevo');
       cont.innerHTML = '';
       
-      actualizarSelectsPrendas();
       agregarFilaVariante('contenedor-variantes-nuevo', 'nuevo');
-
       document.getElementById('modal-nuevo-pedido').classList.remove('hidden');
     };
 
@@ -1813,16 +1767,12 @@
       imagenesEdicion = (p.mockupUrls && Array.isArray(p.mockupUrls)) ? [...p.mockupUrls] : [];
       renderizarPreviewsEdicion();
 
-      actualizarSelectsPrendas();
-
       const checkPendiente = document.getElementById('edit-check-tallas-pendientes');
       const contenedor = document.getElementById('contenedor-variantes-edit');
       contenedor.innerHTML = '';
 
-      if (p.prendasEstructura && p.prendasEstructura.modelo) {
+      if (p.prendasEstructura && p.prendasEstructura.variantes) {
         const est = p.prendasEstructura;
-        document.getElementById('edit-select-modelo-prenda').value = est.modelo;
-        document.getElementById('edit-cant-total').value = est.cantTotal || '';
         checkPendiente.checked = !!est.tallasPendientes;
 
         if (est.variantes && est.variantes.length > 0) {
@@ -1832,7 +1782,6 @@
         }
       } else {
         // Pedido viejo en formato texto libre
-        document.getElementById('edit-cant-total').value = '';
         checkPendiente.checked = false;
         agregarFilaVariante('contenedor-variantes-edit', 'edit');
       }
