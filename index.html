@@ -116,16 +116,26 @@
           </button>
         </div>
 
-        <!-- SUBPESTAÑAS DE MOSTRADOR -->
-        <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-bold">
-          <button id="btn-subtab-activos" onclick="cambiarSubtabMostrador('activos')" class="px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 bg-blue-600 text-white shadow">
-            <span>Activos</span>
-            <span id="badge-contador-activos" class="bg-blue-900/60 text-blue-200 text-[10px] px-1.5 py-0.2 rounded-full">0</span>
-          </button>
-          <button id="btn-subtab-entregados" onclick="cambiarSubtabMostrador('entregados')" class="px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white">
-            <span>Entregados</span>
-            <span id="badge-contador-entregados" class="bg-slate-700 text-slate-300 text-[10px] px-1.5 py-0.2 rounded-full">0</span>
-          </button>
+        <!-- FILTROS Y BUSCADOR INTELIGENTE -->
+        <div class="flex items-center flex-wrap gap-2.5">
+          <!-- INPUT BUSCADOR TIPO GOOGLE -->
+          <div class="relative min-w-[240px]">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="input-buscador-general" oninput="filtrarPedidosEnTiempoReal()" placeholder="Buscar cliente, folio, prenda..." class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition shadow-inner">
+            <button id="btn-limpiar-busqueda" onclick="limpiarBuscador()" class="hidden absolute right-2.5 top-2 text-slate-400 hover:text-white text-xs">&times;</button>
+          </div>
+
+          <!-- SUBPESTAÑAS DE MOSTRADOR -->
+          <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-bold">
+            <button id="btn-subtab-activos" onclick="cambiarSubtabMostrador('activos')" class="px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 bg-blue-600 text-white shadow">
+              <span>Activos</span>
+              <span id="badge-contador-activos" class="bg-blue-900/60 text-blue-200 text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+            </button>
+            <button id="btn-subtab-entregados" onclick="cambiarSubtabMostrador('entregados')" class="px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white">
+              <span>Entregados</span>
+              <span id="badge-contador-entregados" class="bg-slate-700 text-slate-300 text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -542,37 +552,46 @@
     </div>
   </div>
 
-  <!-- MODAL GESTIONAR STOCK INDIVIDUAL POR ORDEN -->
+  <!-- ========================================== -->
+  <!-- MODAL GESTIONAR STOCK INDIVIDUAL (AMPLIADO Y CÓMODO) -->
+  <!-- ========================================== -->
   <div id="modal-gestionar-prendas" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-5 shadow-2xl">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-3">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
         <div>
           <h3 class="text-base font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-boxes-stacked text-amber-400"></i> Gestionar Stock de Prendas
           </h3>
-          <p id="modal-gestionar-subtitulo" class="text-xs text-slate-400"></p>
+          <p id="modal-gestionar-subtitulo" class="text-xs text-slate-400 font-mono mt-0.5"></p>
         </div>
         <button onclick="cerrarModalGestionar()" class="text-slate-400 hover:text-white text-xl">&times;</button>
       </div>
 
-      <div class="space-y-3 text-xs">
+      <div class="space-y-4 text-xs">
         <input type="hidden" id="modal-gestionar-id">
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">Prendas Totales del Pedido:</label>
-          <div id="modal-gestionar-total-prendas" class="p-2.5 bg-slate-900 rounded-lg text-slate-200 leading-relaxed border border-slate-700"></div>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="block font-semibold text-amber-300">
-            Prendas pendientes con el proveedor:
+          <label class="block font-bold text-slate-300 uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-shirt text-blue-400"></i> Prendas Totales del Pedido:
           </label>
-          <textarea id="modal-gestionar-input-pendientes" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs" placeholder="Ej. Falta conseguir 1 Negra M con proveedor (Dejar vacío si ya llegaron todas)"></textarea>
-          <p class="text-[11px] text-slate-400">💡 Al vaciar este campo, la orden se actualiza automáticamente como <strong>100% Completa</strong> para taller.</p>
+          <div id="modal-gestionar-total-prendas" class="p-3.5 bg-slate-900/90 rounded-xl text-slate-200 text-xs leading-relaxed border border-slate-700 shadow-inner max-h-48 overflow-y-auto font-mono whitespace-pre-wrap"></div>
         </div>
 
-        <div class="flex justify-end gap-2 pt-2 border-t border-slate-700">
-          <button onclick="cerrarModalGestionar()" class="px-4 py-1.5 rounded-lg text-slate-400 hover:text-white">Cancelar</button>
-          <button onclick="guardarGestionPrendas()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-1.5 rounded-lg shadow">Guardar Estado</button>
+        <div class="space-y-2">
+          <label class="block font-bold text-amber-300 text-xs flex items-center justify-between">
+            <span>Prendas pendientes con el proveedor:</span>
+            <span class="text-[10px] text-slate-400 font-normal">Puedes agrandar este cuadro arrastrando la esquina</span>
+          </label>
+          <textarea id="modal-gestionar-input-pendientes" rows="5" class="w-full bg-slate-900 border border-amber-500/40 focus:border-amber-400 focus:outline-none rounded-xl p-3 text-white text-xs leading-relaxed font-mono shadow-inner resize-y" placeholder="Ej. Falta conseguir: 4 Oversize Wusstek Blanco (CH), 2 Oversize Wusstek Blanco (M)"></textarea>
+          <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <span class="text-amber-400">💡</span> Al vaciar este campo por completo, la orden se actualiza automáticamente como <strong>100% Completa</strong> para taller.
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-700">
+          <button onclick="cerrarModalGestionar()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white font-semibold">Cancelar</button>
+          <button onclick="guardarGestionPrendas()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-5 py-2 rounded-lg shadow transition">
+            Guardar Estado
+          </button>
         </div>
       </div>
     </div>
@@ -631,10 +650,10 @@
       onSnapshot, 
       doc, 
       setDoc, 
-      addDoc,
+      addDoc, 
       updateDoc, 
-      deleteDoc,
-      orderBy,
+      deleteDoc, 
+      orderBy, 
       query 
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -658,6 +677,7 @@
     let imagenesTemporales = [];
     let imagenesEdicion = [];
     let subtabMostradorActual = 'activos';
+    let terminoBusqueda = '';
     const TALLAS_DISPONIBLES = ['CH', 'M', 'G', 'XG', '2XG', '3XG', 'Unitalla'];
 
     // OYENTE EN TIEMPO REAL: PEDIDOS
@@ -702,6 +722,53 @@
       for (const item of base) {
         await addDoc(catalogoRef, item);
       }
+    }
+
+    // BUSCADOR EN TIEMPO REAL TIPO GOOGLE (TOLERANTE AL ORDEN DE PALABRAS Y ACENTOS)
+    function normalizarTexto(txt) {
+      return (txt || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    }
+
+    window.filtrarPedidosEnTiempoReal = function() {
+      const input = document.getElementById('input-buscador-general');
+      const btnLimpiar = document.getElementById('btn-limpiar-busqueda');
+      terminoBusqueda = normalizarTexto(input.value);
+
+      if (terminoBusqueda.length > 0) {
+        btnLimpiar.classList.remove('hidden');
+      } else {
+        btnLimpiar.classList.add('hidden');
+      }
+
+      renderizarMostrador();
+    };
+
+    window.limpiarBuscador = function() {
+      const input = document.getElementById('input-buscador-general');
+      input.value = '';
+      terminoBusqueda = '';
+      document.getElementById('btn-limpiar-busqueda').classList.add('hidden');
+      renderizarMostrador();
+    };
+
+    function coincideConBusqueda(pedido, termino) {
+      if (!termino) return true;
+
+      const palabrasBusqueda = termino.split(/\s+/).filter(p => p.length > 0);
+      
+      // Concatenamos todos los campos buscables del pedido en un solo bloque normalizado
+      let textoCompleto = `${pedido.id} ${pedido.cliente} ${pedido.telefono || ''} ${pedido.tecnica || ''} ${pedido.ubicaciones || ''} ${pedido.prendas || ''} ${pedido.prendasPendientes || ''}`;
+      
+      if (pedido.prendasEstructura && Array.isArray(pedido.prendasEstructura.variantes)) {
+        pedido.prendasEstructura.variantes.forEach(v => {
+          textoCompleto += ` ${v.modelo || ''} ${v.color || ''} ${v.talla || ''}`;
+        });
+      }
+
+      const textoNorm = normalizarTexto(textoCompleto);
+
+      // Modo Google: TODAS las palabras escritas deben estar presentes, sin importar su orden
+      return palabrasBusqueda.every(palabra => textoNorm.includes(palabra));
     }
 
     window.cambiarVista = function(vista) {
@@ -1006,7 +1073,7 @@
     };
 
     function renderizarHtmlPrendas(pedido, contexto = 'tabla') {
-      // 1. Si es formato antiguo en texto libre o sin variantes estructuradas
+      // 1. Blindaje contra datos viejos o incompletos: si no tiene variantes válidas estructuradas
       if (!pedido.prendasEstructura || !Array.isArray(pedido.prendasEstructura.variantes) || pedido.prendasEstructura.variantes.length === 0) {
         return `<div class="text-xs text-slate-200 font-medium leading-relaxed">${pedido.prendas || 'Sin prendas registradas'}</div>`;
       }
@@ -1020,15 +1087,19 @@
         `;
       }
 
-      // 2. Agrupación por Modelo + Color + Origen
+      // 2. Agrupación por Modelo + Color + Origen (evitando 'undefined')
       const mapaAgrupado = {};
       est.variantes.forEach(v => {
+        const modeloNombre = v.modelo || est.modelo || 'Prenda';
+        const colorNombre = v.color && v.color !== 'undefined' ? v.color : '';
+        const tallaNombre = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
         const origen = v.origen || 'comprar';
-        const clave = `${v.modelo}__${v.color}__${origen}`;
+        const clave = `${modeloNombre}__${colorNombre}__${origen}`;
+
         if (!mapaAgrupado[clave]) {
           mapaAgrupado[clave] = {
-            modelo: v.modelo,
-            color: v.color,
+            modelo: modeloNombre,
+            color: colorNombre,
             origen: origen,
             totalPiezas: 0,
             tallas: {}
@@ -1036,7 +1107,7 @@
         }
         const cant = parseInt(v.cant) || 0;
         mapaAgrupado[clave].totalPiezas += cant;
-        mapaAgrupado[clave].tallas[v.talla] = (mapaAgrupado[clave].tallas[v.talla] || 0) + cant;
+        mapaAgrupado[clave].tallas[tallaNombre] = (mapaAgrupado[clave].tallas[tallaNombre] || 0) + cant;
       });
 
       const grupos = Object.values(mapaAgrupado);
@@ -1061,7 +1132,7 @@
         return `
           <div class="flex flex-wrap items-center gap-1.5 leading-snug py-0.5">
             <span class="font-bold text-white text-xs">${g.modelo}</span>
-            <span class="text-slate-300 text-xs">${g.color}</span>
+            ${g.color ? `<span class="text-slate-300 text-xs">${g.color}</span>` : ''}
             <div class="inline-flex flex-wrap gap-1 items-center">${corridaHtml}</div>
             ${badgeOrigen}
           </div>
@@ -1145,12 +1216,16 @@
           p.prendasEstructura.variantes.forEach(v => {
             if (v.origen === 'comprar') {
               const cant = parseInt(v.cant) || 0;
-              const clave = `${v.modelo}__${v.color}`;
+              const modeloNombre = v.modelo || p.prendasEstructura.modelo || 'Prenda';
+              const colorNombre = v.color && v.color !== 'undefined' ? v.color : 'Único';
+              const tallaNombre = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
+
+              const clave = `${modeloNombre}__${colorNombre}`;
               
               if (!mapaConsolidado[clave]) {
                 mapaConsolidado[clave] = {
-                  modelo: v.modelo,
-                  color: v.color,
+                  modelo: modeloNombre,
+                  color: colorNombre,
                   total: 0,
                   tallas: {},
                   pedidosMap: {}
@@ -1158,7 +1233,7 @@
               }
 
               mapaConsolidado[clave].total += cant;
-              mapaConsolidado[clave].tallas[v.talla] = (mapaConsolidado[clave].tallas[v.talla] || 0) + cant;
+              mapaConsolidado[clave].tallas[tallaNombre] = (mapaConsolidado[clave].tallas[tallaNombre] || 0) + cant;
 
               if (!mapaConsolidado[clave].pedidosMap[p.id]) {
                 mapaConsolidado[clave].pedidosMap[p.id] = { cliente: p.cliente, cant: 0 };
@@ -1507,7 +1582,7 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR (CON PRENDAS AGRUPADAS Y COMPACTAS)
+    // VISTA MOSTRADOR (CON BUSCADOR ACTIVO Y FILTROS)
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
@@ -1519,14 +1594,27 @@
       document.getElementById('badge-contador-activos').innerText = pedidosActivos.length;
       document.getElementById('badge-contador-entregados').innerText = pedidosEntregados.length;
 
-      const listaMostrador = (subtabMostradorActual === 'activos') ? pedidosActivos : pedidosEntregados;
+      // 1. Elegir subtab actual
+      let listaMostrador = (subtabMostradorActual === 'activos') ? pedidosActivos : pedidosEntregados;
+
+      // 2. Aplicar filtro del buscador inteligente
+      if (terminoBusqueda) {
+        listaMostrador = listaMostrador.filter(p => coincideConBusqueda(p, terminoBusqueda));
+      }
+
+      // 3. Ordenar
       const pedidosOrdenados = ordenarPorPrioridad(listaMostrador);
 
       if (pedidosOrdenados.length === 0) {
-        const mensajeVacio = (subtabMostradorActual === 'activos') 
+        let mensajeVacio = (subtabMostradorActual === 'activos') 
           ? 'No hay pedidos activos en proceso.' 
           : 'No hay pedidos en el historial de entregados.';
-        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-500">${mensajeVacio}</td></tr>`;
+        
+        if (terminoBusqueda) {
+          mensajeVacio = `No se encontraron pedidos que coincidan con "<strong>${terminoBusqueda}</strong>"`;
+        }
+
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 font-medium">${mensajeVacio}</td></tr>`;
         return;
       }
 
@@ -1556,7 +1644,7 @@
           </td>
 
           <!-- PRENDAS Y TALLAS COMPACTAS Y AGRUPADAS -->
-          <td class="py-3 px-3 align-top min-w-[280px]">
+          <td class="py-3 px-3 align-top min-w-[320px]">
             ${renderizarHtmlPrendas(p, 'tabla')}
             ${tienePendiente ? `
               <div class="text-[11px] text-amber-400 font-medium mt-1 flex items-center gap-1 leading-tight">
@@ -1611,7 +1699,7 @@
       });
     }
 
-    // COPIAR RESUMEN PARA WHATSAPP (AGRUPADO LIMPIO)
+    // COPIAR RESUMEN PARA WHATSAPP
     window.copiarResumenJefe = function(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
@@ -1626,17 +1714,19 @@
         if (est.tallasPendientes || !est.variantes || est.variantes.length === 0) {
           bloquePrendas = `${est.cantTotal || ''} Prendas (Tallas pendientes por confirmar)`;
         } else {
-          // Agrupar por Modelo + Color + Origen
           const mapa = {};
           est.variantes.forEach(v => {
+            const mod = v.modelo || est.modelo || 'Prenda';
+            const col = v.color && v.color !== 'undefined' ? v.color : '';
+            const t = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
             const origen = v.origen || 'comprar';
-            const clave = `${v.modelo}__${v.color}__${origen}`;
+            const clave = `${mod}__${col}__${origen}`;
             if (!mapa[clave]) {
-              mapa[clave] = { modelo: v.modelo, color: v.color, origen: origen, total: 0, tallas: {} };
+              mapa[clave] = { modelo: mod, color: col, origen: origen, total: 0, tallas: {} };
             }
             const cant = parseInt(v.cant) || 0;
             mapa[clave].total += cant;
-            mapa[clave].tallas[v.talla] = (mapa[clave].tallas[v.talla] || 0) + cant;
+            mapa[clave].tallas[t] = (mapa[clave].tallas[t] || 0) + cant;
           });
 
           bloquePrendas = `${est.cantTotal} Prendas en total:\n` + Object.values(mapa).map(g => {
@@ -1929,7 +2019,6 @@
           agregarFilaVariante('contenedor-variantes-edit', 'edit');
         }
       } else {
-        // Pedido viejo en formato texto libre
         checkPendiente.checked = false;
         agregarFilaVariante('contenedor-variantes-edit', 'edit');
       }
@@ -2055,14 +2144,32 @@
       }
     };
 
-    // MODAL GESTIONAR STOCK INDIVIDUAL
+    // ====================================================
+    // MODAL GESTIONAR STOCK INDIVIDUAL (AMPLIADO)
+    // ====================================================
     window.abrirModalGestionar = function(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
 
       document.getElementById('modal-gestionar-id').value = p.id;
       document.getElementById('modal-gestionar-subtitulo').innerText = `${p.id} — ${p.cliente}`;
-      document.getElementById('modal-gestionar-total-prendas').innerText = p.prendas;
+      
+      // Mostrar desglose claro
+      const contenedorPrendas = document.getElementById('modal-gestionar-total-prendas');
+      if (p.prendasEstructura && Array.isArray(p.prendasEstructura.variantes)) {
+        let textoDesglose = `Total: ${p.prendasEstructura.cantTotal || 0} prendas\n`;
+        p.prendasEstructura.variantes.forEach((v, idx) => {
+          const mod = v.modelo || p.prendasEstructura.modelo || 'Prenda';
+          const col = v.color && v.color !== 'undefined' ? v.color : '';
+          const t = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
+          const origen = v.origen === 'cliente' ? '[Cliente]' : '[Comprar]';
+          textoDesglose += `• (${v.cant}) ${mod} ${col} Talla ${t} ${origen}\n`;
+        });
+        contenedorPrendas.innerText = textoDesglose;
+      } else {
+        contenedorPrendas.innerText = p.prendas || 'Sin desglose registrado';
+      }
+
       document.getElementById('modal-gestionar-input-pendientes').value = p.prendasPendientes || '';
       document.getElementById('modal-gestionar-prendas').classList.remove('hidden');
     };
@@ -2073,7 +2180,7 @@
 
     window.guardarGestionPrendas = async function() {
       const id = document.getElementById('modal-gestionar-id').value;
-      const pendientes = document.getElementById('modal-gestionar-input-pendientes').value;
+      const pendientes = document.getElementById('modal-gestionar-input-pendientes').value.trim();
 
       try {
         await updateDoc(doc(db, "pedidos", id), { prendasPendientes: pendientes });
