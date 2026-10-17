@@ -36,6 +36,9 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
 
+  <!-- DATALIST GLOBAL PARA BÚSQUEDA RÁPIDA DE PRENDAS -->
+  <datalist id="lista-prendas-catalogo"></datalist>
+
   <!-- HEADER -->
   <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-30 px-4 py-3 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
@@ -118,7 +121,6 @@
 
         <!-- FILTROS Y BUSCADOR INTELIGENTE -->
         <div class="flex items-center flex-wrap gap-2.5">
-          <!-- INPUT BUSCADOR TIPO GOOGLE -->
           <div class="relative min-w-[240px]">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
             <input type="text" id="input-buscador-general" oninput="filtrarPedidosEnTiempoReal()" placeholder="Buscar cliente, folio, prenda..." class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition shadow-inner">
@@ -204,7 +206,7 @@
           </div>
         </div>
 
-        <!-- ESTRUCTURA MODULAR CON TOTAL DINÁMICO -->
+        <!-- ESTRUCTURA MODULAR CON BUSCADOR DE PRENDAS -->
         <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="font-bold text-blue-300 flex items-center gap-1.5">
@@ -228,7 +230,7 @@
 
           <div id="seccion-variantes-nuevo" class="space-y-2 pt-1 border-t border-slate-800">
             <div class="flex justify-between items-center">
-              <span class="text-[11px] text-slate-400 font-semibold">Prenda / Modelo &nbsp;➔&nbsp; Color &nbsp;➔&nbsp; Talla &nbsp;➔&nbsp; Cantidad &nbsp;➔&nbsp; Suministro:</span>
+              <span class="text-[11px] text-slate-400 font-semibold">Prenda (Escribe para buscar) &nbsp;➔&nbsp; Color &nbsp;➔&nbsp; Talla &nbsp;➔&nbsp; Cant. &nbsp;➔&nbsp; Suministro:</span>
               <button type="button" onclick="agregarFilaVariante('contenedor-variantes-nuevo', 'nuevo')" class="text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1">
                 <i class="fa-solid fa-plus-circle"></i> Agregar Variante
               </button>
@@ -335,7 +337,7 @@
           </div>
         </div>
 
-        <!-- EDICIÓN MODULAR DE PRENDAS Y TALLAS CON PRENDA POR FILA -->
+        <!-- EDICIÓN MODULAR DE PRENDAS CON BUSCADOR -->
         <div class="bg-blue-950/20 border border-blue-500/40 p-3 rounded-xl space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="font-bold text-blue-300 flex items-center gap-1.5">
@@ -359,7 +361,7 @@
 
           <div id="seccion-variantes-edit" class="space-y-2 pt-1 border-t border-slate-800">
             <div class="flex justify-between items-center">
-              <span class="text-[11px] text-slate-400 font-semibold">Prenda / Modelo &nbsp;➔&nbsp; Color &nbsp;➔&nbsp; Talla &nbsp;➔&nbsp; Cantidad &nbsp;➔&nbsp; Suministro:</span>
+              <span class="text-[11px] text-slate-400 font-semibold">Prenda (Escribe para buscar) &nbsp;➔&nbsp; Color &nbsp;➔&nbsp; Talla &nbsp;➔&nbsp; Cant. &nbsp;➔&nbsp; Suministro:</span>
               <button type="button" onclick="agregarFilaVariante('contenedor-variantes-edit', 'edit')" class="text-sky-400 hover:text-sky-300 font-bold flex items-center gap-1">
                 <i class="fa-solid fa-plus-circle"></i> Agregar Variante
               </button>
@@ -552,9 +554,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
   <!-- MODAL GESTIONAR STOCK INDIVIDUAL (AMPLIADO Y CÓMODO) -->
-  <!-- ========================================== -->
   <div id="modal-gestionar-prendas" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
@@ -597,9 +597,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
   <!-- HOJA DE TALLER: LISTA GENERAL DE PENDIENTES (IMPRESIÓN) -->
-  <!-- ========================================== -->
   <div id="area-impresion-taller" class="hidden font-sans">
     <div class="border-b-2 border-black pb-2 mb-3 flex justify-between items-center">
       <div>
@@ -705,6 +703,7 @@
         inicializarCatalogoBase();
       } else {
         renderizarListaCatalogo();
+        actualizarDatalistPrendas();
       }
     }, (error) => {
       console.error("Error al sincronizar catálogo:", error);
@@ -724,7 +723,18 @@
       }
     }
 
-    // BUSCADOR EN TIEMPO REAL TIPO GOOGLE (TOLERANTE AL ORDEN DE PALABRAS Y ACENTOS)
+    function actualizarDatalistPrendas() {
+      const datalist = document.getElementById('lista-prendas-catalogo');
+      if (!datalist) return;
+      datalist.innerHTML = '';
+      catalogo.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.modelo;
+        datalist.appendChild(opt);
+      });
+    }
+
+    // BUSCADOR EN TIEMPO REAL TIPO GOOGLE
     function normalizarTexto(txt) {
       return (txt || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     }
@@ -755,8 +765,6 @@
       if (!termino) return true;
 
       const palabrasBusqueda = termino.split(/\s+/).filter(p => p.length > 0);
-      
-      // Concatenamos todos los campos buscables del pedido en un solo bloque normalizado
       let textoCompleto = `${pedido.id} ${pedido.cliente} ${pedido.telefono || ''} ${pedido.tecnica || ''} ${pedido.ubicaciones || ''} ${pedido.prendas || ''} ${pedido.prendasPendientes || ''}`;
       
       if (pedido.prendasEstructura && Array.isArray(pedido.prendasEstructura.variantes)) {
@@ -766,8 +774,6 @@
       }
 
       const textoNorm = normalizarTexto(textoCompleto);
-
-      // Modo Google: TODAS las palabras escritas deben estar presentes, sin importar su orden
       return palabrasBusqueda.every(palabra => textoNorm.includes(palabra));
     }
 
@@ -897,12 +903,13 @@
     };
 
     function obtenerColoresDeModelo(modeloNombre) {
-      const encontrado = catalogo.find(c => c.modelo.toLowerCase() === (modeloNombre || '').toLowerCase());
+      const buscado = (modeloNombre || '').trim().toLowerCase();
+      const encontrado = catalogo.find(c => c.modelo.trim().toLowerCase() === buscado);
       return encontrado ? encontrado.colores : [];
     }
 
     // ====================================================
-    // VARIANTES: PRENDA Y COLOR INDEPENDIENTES POR CADA FILA
+    // VARIANTES: INPUT CON BUSCADOR INTELIGENTE POR RENGLÓN
     // ====================================================
     window.toggleTallasPendientes = function(checkbox, modo) {
       const contenedor = document.getElementById(modo === 'nuevo' ? 'seccion-variantes-nuevo' : 'seccion-variantes-edit');
@@ -913,29 +920,31 @@
       }
     };
 
-    window.actualizarColoresFila = function(selectModelo) {
-      const fila = selectModelo.closest('.fila-variante');
+    window.actualizarColoresFila = function(inputModelo) {
+      const fila = inputModelo.closest('.fila-variante');
       const selectColor = fila.querySelector('.var-color-select');
-      const colores = obtenerColoresDeModelo(selectModelo.value);
+      const colores = obtenerColoresDeModelo(inputModelo.value);
 
+      const colorPrevio = selectColor.value;
       selectColor.innerHTML = '<option value="">Color</option>';
-      colores.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        selectColor.appendChild(opt);
-      });
+      
+      if (colores.length > 0) {
+        colores.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          selectColor.appendChild(opt);
+        });
+        if (colores.includes(colorPrevio)) {
+          selectColor.value = colorPrevio;
+        }
+      }
     };
 
     window.agregarFilaVariante = function(contenedorId, modo, datos = { modelo: '', color: '', talla: 'M', cant: '', origen: 'comprar' }) {
       const cont = document.getElementById(contenedorId);
 
-      let opcionesPrenda = '<option value="">Prenda / Modelo</option>';
-      catalogo.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(cat => {
-        const sel = (datos.modelo && datos.modelo.toLowerCase() === cat.modelo.toLowerCase()) ? 'selected' : '';
-        opcionesPrenda += `<option value="${cat.modelo}" ${sel}>${cat.modelo}</option>`;
-      });
-
+      // Opciones de Color según la prenda seleccionada
       const coloresDisponibles = obtenerColoresDeModelo(datos.modelo);
       let opcionesColor = '<option value="">Color</option>';
       if (coloresDisponibles.length > 0) {
@@ -943,10 +952,11 @@
           const sel = (datos.color && datos.color.toLowerCase() === c.toLowerCase()) ? 'selected' : '';
           opcionesColor += `<option value="${c}" ${sel}>${c}</option>`;
         });
-      } else if (datos.color) {
+      } else if (datos.color && datos.color !== 'undefined') {
         opcionesColor += `<option value="${datos.color}" selected>${datos.color}</option>`;
       }
 
+      // Opciones de Talla estandarizadas
       let opcionesTalla = '';
       TALLAS_DISPONIBLES.forEach(t => {
         const sel = (datos.talla === t) ? 'selected' : '';
@@ -958,20 +968,29 @@
       const div = document.createElement('div');
       div.className = 'fila-variante grid grid-cols-12 gap-1.5 items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700/60';
       div.innerHTML = `
-        <select onchange="window.actualizarColoresFila(this)" class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold var-modelo-select">
-          ${opcionesPrenda}
-        </select>
-        <select class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium">
+        <!-- INPUT CON BUSCADOR AUTOMÁTICO (DATALIST) -->
+        <input type="text" list="lista-prendas-catalogo" placeholder="Buscar prenda..." value="${datos.modelo || ''}" oninput="window.actualizarColoresFila(this)" class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-xs var-modelo-input focus:border-blue-500 focus:outline-none">
+
+        <!-- COLOR DEPENDIENTE DE LA PRENDA DE ESTA FILA -->
+        <select class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium text-xs">
           ${opcionesColor}
         </select>
-        <select class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-talla-select">
+
+        <!-- TALLA -->
+        <select class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center text-xs var-talla-select">
           ${opcionesTalla}
         </select>
-        <input type="number" min="1" placeholder="Cant." value="${datos.cant || ''}" oninput="recalcularTotalPrendasFormulario('${modo}')" class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center var-cant">
+
+        <!-- CANTIDAD -->
+        <input type="number" min="1" placeholder="Cant." value="${datos.cant || ''}" oninput="recalcularTotalPrendasFormulario('${modo}')" class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center text-xs var-cant">
+
+        <!-- ORIGEN / SUMINISTRO -->
         <select class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ${origenActual === 'cliente' ? 'text-emerald-400' : 'text-amber-400'}" onchange="this.className = 'col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ' + (this.value === 'cliente' ? 'text-emerald-400' : 'text-amber-400')">
           <option value="comprar" class="text-amber-400" ${origenActual === 'comprar' ? 'selected' : ''}>🔴 Comprar</option>
           <option value="cliente" class="text-emerald-400" ${origenActual === 'cliente' ? 'selected' : ''}>🟢 Cliente</option>
         </select>
+
+        <!-- ELIMINAR -->
         <button type="button" onclick="eliminarFilaVariante(this, '${modo}')" class="col-span-1 text-slate-500 hover:text-rose-400 text-center text-sm font-bold" title="Eliminar">&times;</button>
       `;
       cont.appendChild(div);
@@ -1013,13 +1032,13 @@
 
       if (!tallasPendientes) {
         filas.forEach(f => {
-          const mod = f.querySelector('.var-modelo-select').value.trim();
+          const mod = f.querySelector('.var-modelo-input').value.trim();
           const col = f.querySelector('.var-color-select').value.trim();
           const t = f.querySelector('.var-talla-select').value.trim();
           const c = parseInt(f.querySelector('.var-cant').value) || 0;
           const origen = f.querySelector('.var-origen-select').value;
           if (c > 0 && mod) {
-            variantes.push({ modelo: mod, color: col || 'Único', talla: t, cant: c, origen: origen });
+            variantes.push({ modelo: mod, color: col || '', talla: t || 'Única', cant: c, origen: origen });
             totalPiezas += c;
             if (origen === 'comprar') totalPorComprar += c;
           }
@@ -1032,14 +1051,18 @@
       } else {
         const partesTexto = variantes.map(v => {
           const extra = v.origen === 'cliente' ? ' [Cliente]' : '';
-          return `${v.cant} ${v.modelo} ${v.color} (${v.talla})${extra}`;
+          const colorTxt = v.color ? ` ${v.color}` : '';
+          return `${v.cant} ${v.modelo}${colorTxt} (${v.talla})${extra}`;
         });
         textoPrendas = `${totalPiezas} Prendas: ` + partesTexto.join(' / ');
       }
 
       let textoPendientesAuto = '';
       if (totalPorComprar > 0) {
-        const faltantes = variantes.filter(v => v.origen === 'comprar').map(v => `${v.cant} ${v.modelo} ${v.color} (${v.talla})`).join(', ');
+        const faltantes = variantes.filter(v => v.origen === 'comprar').map(v => {
+          const colorTxt = v.color ? ` ${v.color}` : '';
+          return `${v.cant} ${v.modelo}${colorTxt} (${v.talla})`;
+        }).join(', ');
         textoPendientesAuto = `Falta comprar: ${faltantes}`;
       }
 
@@ -1073,7 +1096,6 @@
     };
 
     function renderizarHtmlPrendas(pedido, contexto = 'tabla') {
-      // 1. Blindaje contra datos viejos o incompletos: si no tiene variantes válidas estructuradas
       if (!pedido.prendasEstructura || !Array.isArray(pedido.prendasEstructura.variantes) || pedido.prendasEstructura.variantes.length === 0) {
         return `<div class="text-xs text-slate-200 font-medium leading-relaxed">${pedido.prendas || 'Sin prendas registradas'}</div>`;
       }
@@ -1087,12 +1109,11 @@
         `;
       }
 
-      // 2. Agrupación por Modelo + Color + Origen (evitando 'undefined')
       const mapaAgrupado = {};
       est.variantes.forEach(v => {
         const modeloNombre = v.modelo || est.modelo || 'Prenda';
-        const colorNombre = v.color && v.color !== 'undefined' ? v.color : '';
-        const tallaNombre = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
+        const colorNombre = (v.color && v.color !== 'undefined') ? v.color : '';
+        const tallaNombre = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
         const origen = v.origen || 'comprar';
         const clave = `${modeloNombre}__${colorNombre}__${origen}`;
 
@@ -1113,7 +1134,6 @@
       const grupos = Object.values(mapaAgrupado);
       const totalGlobal = est.cantTotal || grupos.reduce((acc, g) => acc + g.totalPiezas, 0);
 
-      // 3. Generación de los renglones limpios
       const renglonesHtml = grupos.map(g => {
         const tallasOrdenadas = Object.keys(g.tallas).sort((t1, t2) => {
           const i1 = TALLAS_DISPONIBLES.indexOf(t1);
@@ -1139,14 +1159,12 @@
         `;
       });
 
-      // 4. Encabezado con total de prendas
       const encabezado = `
         <div class="text-[11px] font-black text-blue-400 uppercase tracking-wide flex items-center gap-1 mb-1">
           <i class="fa-solid fa-shirt"></i> ${totalGlobal} Prendas en Total:
         </div>
       `;
 
-      // 5. Si excede de 3 líneas, mostrar las primeras 3 y colapsar el resto
       const LIMITE = 3;
       if (renglonesHtml.length <= LIMITE) {
         return `<div>${encabezado}<div class="space-y-0.5">${renglonesHtml.join('')}</div></div>`;
@@ -1217,8 +1235,8 @@
             if (v.origen === 'comprar') {
               const cant = parseInt(v.cant) || 0;
               const modeloNombre = v.modelo || p.prendasEstructura.modelo || 'Prenda';
-              const colorNombre = v.color && v.color !== 'undefined' ? v.color : 'Único';
-              const tallaNombre = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
+              const colorNombre = (v.color && v.color !== 'undefined') ? v.color : 'Único';
+              const tallaNombre = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
 
               const clave = `${modeloNombre}__${colorNombre}`;
               
@@ -1594,15 +1612,12 @@
       document.getElementById('badge-contador-activos').innerText = pedidosActivos.length;
       document.getElementById('badge-contador-entregados').innerText = pedidosEntregados.length;
 
-      // 1. Elegir subtab actual
       let listaMostrador = (subtabMostradorActual === 'activos') ? pedidosActivos : pedidosEntregados;
 
-      // 2. Aplicar filtro del buscador inteligente
       if (terminoBusqueda) {
         listaMostrador = listaMostrador.filter(p => coincideConBusqueda(p, terminoBusqueda));
       }
 
-      // 3. Ordenar
       const pedidosOrdenados = ordenarPorPrioridad(listaMostrador);
 
       if (pedidosOrdenados.length === 0) {
@@ -1629,21 +1644,17 @@
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-70 bg-slate-900/40' : ''}`;
         tr.innerHTML = `
-          <!-- FOLIO -->
           <td class="py-3 px-3 font-mono font-bold ${esCerrado ? 'text-slate-500' : 'text-blue-400'} whitespace-nowrap align-top">${p.id}</td>
           
-          <!-- CLIENTE -->
           <td class="py-3 px-3 align-top">
             <div class="font-bold text-white leading-tight">${p.cliente}</div>
             <div class="text-[11px] text-slate-400 leading-tight mt-0.5">${p.telefono || 'Sin tel'}</div>
           </td>
 
-          <!-- PRIORIDAD / FECHA -->
           <td class="py-3 px-3 whitespace-nowrap align-top">
             ${infoFecha.tieneFecha ? infoFecha.badgeHtml : '<span class="text-slate-600 text-xs">—</span>'}
           </td>
 
-          <!-- PRENDAS Y TALLAS COMPACTAS Y AGRUPADAS -->
           <td class="py-3 px-3 align-top min-w-[320px]">
             ${renderizarHtmlPrendas(p, 'tabla')}
             ${tienePendiente ? `
@@ -1653,7 +1664,6 @@
             ` : ''}
           </td>
 
-          <!-- ESTATUS -->
           <td class="py-3 px-3 whitespace-nowrap align-top">
             <select onchange="window.actualizarEstatus('${p.id}', this.value)" class="bg-slate-900 text-xs border border-slate-700 rounded p-1.5 text-slate-200 focus:ring-0">
               <option value="Listo para Máquina" ${p.estatus === 'Listo para Máquina' ? 'selected' : ''}>🔵 Máquina</option>
@@ -1663,18 +1673,13 @@
             </select>
           </td>
 
-          <!-- TOTAL -->
           <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-top">$${formatDinero(p.total)}</td>
-
-          <!-- PAGADO -->
           <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-top">$${formatDinero(pagado)}</td>
 
-          <!-- SALDO -->
           <td class="py-3 px-2.5 text-right font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'} whitespace-nowrap align-top">
             ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + formatDinero(saldo)}
           </td>
 
-          <!-- ACCIONES -->
           <td class="py-3 px-3 text-center whitespace-nowrap align-top">
             <div class="inline-flex items-center gap-1.5">
               <button id="btn-copy-${p.id}" onclick="window.copiarResumenJefe('${p.id}')" class="bg-emerald-700/40 hover:bg-emerald-600/60 text-emerald-300 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition" title="Copiar resumen para WhatsApp">
@@ -1717,8 +1722,8 @@
           const mapa = {};
           est.variantes.forEach(v => {
             const mod = v.modelo || est.modelo || 'Prenda';
-            const col = v.color && v.color !== 'undefined' ? v.color : '';
-            const t = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
+            const col = (v.color && v.color !== 'undefined') ? v.color : '';
+            const t = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
             const origen = v.origen || 'comprar';
             const clave = `${mod}__${col}__${origen}`;
             if (!mapa[clave]) {
@@ -1737,7 +1742,8 @@
             });
             const corrida = tallasOrdenadas.map(t => `(${g.tallas[t]}) ${t}`).join(', ');
             const extra = g.origen === 'cliente' ? ' [Cliente]' : '';
-            return `• ${g.total} ${g.modelo} ${g.color}: ${corrida}${extra}`;
+            const colTxt = g.color ? ` ${g.color}` : '';
+            return `• ${g.total} ${g.modelo}${colTxt}: ${corrida}${extra}`;
           }).join('\n');
         }
       } else {
@@ -2154,16 +2160,16 @@
       document.getElementById('modal-gestionar-id').value = p.id;
       document.getElementById('modal-gestionar-subtitulo').innerText = `${p.id} — ${p.cliente}`;
       
-      // Mostrar desglose claro
       const contenedorPrendas = document.getElementById('modal-gestionar-total-prendas');
       if (p.prendasEstructura && Array.isArray(p.prendasEstructura.variantes)) {
         let textoDesglose = `Total: ${p.prendasEstructura.cantTotal || 0} prendas\n`;
-        p.prendasEstructura.variantes.forEach((v, idx) => {
+        p.prendasEstructura.variantes.forEach((v) => {
           const mod = v.modelo || p.prendasEstructura.modelo || 'Prenda';
-          const col = v.color && v.color !== 'undefined' ? v.color : '';
-          const t = v.talla && v.talla !== 'undefined' ? v.talla : 'Única';
+          const col = (v.color && v.color !== 'undefined') ? v.color : '';
+          const t = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
           const origen = v.origen === 'cliente' ? '[Cliente]' : '[Comprar]';
-          textoDesglose += `• (${v.cant}) ${mod} ${col} Talla ${t} ${origen}\n`;
+          const colTxt = col ? ` ${col}` : '';
+          textoDesglose += `• (${v.cant}) ${mod}${colTxt} Talla ${t} ${origen}\n`;
         });
         contenedorPrendas.innerText = textoDesglose;
       } else {
