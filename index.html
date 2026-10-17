@@ -36,9 +36,6 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
 
-  <!-- DATALIST GLOBAL PARA BÚSQUEDA RÁPIDA DE PRENDAS -->
-  <datalist id="lista-prendas-catalogo"></datalist>
-
   <!-- HEADER -->
   <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-30 px-4 py-3 shadow-md">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
@@ -471,7 +468,6 @@
         <button onclick="cerrarModalStockGeneral()" class="text-slate-400 hover:text-white text-xl">&times;</button>
       </div>
 
-      <!-- CONTENIDO DEL INFORME CONSOLIDADO AGRUPADO -->
       <div id="contenido-stock-general" class="space-y-4 text-xs">
         <div class="text-center py-8 text-slate-400">Calculando prendas pendientes...</div>
       </div>
@@ -703,7 +699,6 @@
         inicializarCatalogoBase();
       } else {
         renderizarListaCatalogo();
-        actualizarDatalistPrendas();
       }
     }, (error) => {
       console.error("Error al sincronizar catálogo:", error);
@@ -721,17 +716,6 @@
       for (const item of base) {
         await addDoc(catalogoRef, item);
       }
-    }
-
-    function actualizarDatalistPrendas() {
-      const datalist = document.getElementById('lista-prendas-catalogo');
-      if (!datalist) return;
-      datalist.innerHTML = '';
-      catalogo.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat.modelo;
-        datalist.appendChild(opt);
-      });
     }
 
     // BUSCADOR EN TIEMPO REAL TIPO GOOGLE
@@ -903,13 +887,84 @@
     };
 
     function obtenerColoresDeModelo(modeloNombre) {
-      const buscado = (modeloNombre || '').trim().toLowerCase();
-      const encontrado = catalogo.find(c => c.modelo.trim().toLowerCase() === buscado);
+      const buscado = normalizarTexto(modeloNombre);
+      if (!buscado) return [];
+      const encontrado = catalogo.find(c => normalizarTexto(c.modelo) === buscado);
       return encontrado ? encontrado.colores : [];
     }
 
     // ====================================================
-    // VARIANTES: INPUT CON BUSCADOR INTELIGENTE POR RENGLÓN
+    // BUSCADOR DE PRENDA INTEGRADO (DROPDOWN OSCURO)
+    // ====================================================
+    window.buscarPrendaEnFila = function(input) {
+      const contenedor = input.closest('.prenda-search-wrapper');
+      const menu = contenedor.querySelector('.prenda-search-results');
+      const texto = normalizarTexto(input.value);
+
+      const filtrados = catalogo.filter(c => normalizarTexto(c.modelo).includes(texto));
+
+      if (filtrados.length === 0) {
+        menu.innerHTML = '<div class="p-2.5 text-slate-500 text-center text-xs">Sin coincidencias</div>';
+      } else {
+        menu.innerHTML = filtrados.map(item => `
+          <div onclick="window.seleccionarPrendaFila(this, '${item.modelo}')" class="p-2.5 hover:bg-blue-600/40 hover:text-white cursor-pointer transition text-slate-200 border-b border-slate-700/60 last:border-0 font-medium">
+            ${item.modelo}
+          </div>
+        `).join('');
+      }
+      menu.classList.remove('hidden');
+    };
+
+    window.abrirMenuPrendasFila = function(input) {
+      const contenedor = input.closest('.prenda-search-wrapper');
+      const menu = contenedor.querySelector('.prenda-search-results');
+      window.buscarPrendaEnFila(input);
+      menu.classList.remove('hidden');
+    };
+
+    window.seleccionarPrendaFila = function(elementoOpcion, modelo) {
+      const contenedor = elementoOpcion.closest('.prenda-search-wrapper');
+      const input = contenedor.querySelector('.var-modelo-input');
+      const menu = contenedor.querySelector('.prenda-search-results');
+
+      input.value = modelo;
+      menu.classList.add('hidden');
+    };
+
+    // Cerrar menús flotantes al hacer clic afuera
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.prenda-search-wrapper')) {
+        document.querySelectorAll('.prenda-search-results').forEach(m => m.classList.add('hidden'));
+      }
+    });
+
+    // ====================================================
+    // CARGA DE COLOR BAJO DEMANDA (AL HACER CLIC)
+    // ====================================================
+    window.cargarColoresAlPicar = function(selectColor) {
+      const fila = selectColor.closest('.fila-variante');
+      const inputModelo = fila.querySelector('.var-modelo-input');
+      const modeloNombre = inputModelo ? inputModelo.value.trim() : '';
+
+      const colores = obtenerColoresDeModelo(modeloNombre);
+      const valorSeleccionado = selectColor.value;
+
+      selectColor.innerHTML = '<option value="">Color</option>';
+
+      if (colores.length > 0) {
+        colores.forEach(c => {
+          const sel = (valorSeleccionado && valorSeleccionado.toLowerCase() === c.toLowerCase()) ? 'selected' : '';
+          selectColor.innerHTML += `<option value="${c}" ${sel}>${c}</option>`;
+        });
+      } else {
+        if (valorSeleccionado && valorSeleccionado !== 'undefined') {
+          selectColor.innerHTML += `<option value="${valorSeleccionado}" selected>${valorSeleccionado}</option>`;
+        }
+      }
+    };
+
+    // ====================================================
+    // VARIANTES: FILAS DINÁMICAS
     // ====================================================
     window.toggleTallasPendientes = function(checkbox, modo) {
       const contenedor = document.getElementById(modo === 'nuevo' ? 'seccion-variantes-nuevo' : 'seccion-variantes-edit');
@@ -920,43 +975,14 @@
       }
     };
 
-    window.actualizarColoresFila = function(inputModelo) {
-      const fila = inputModelo.closest('.fila-variante');
-      const selectColor = fila.querySelector('.var-color-select');
-      const colores = obtenerColoresDeModelo(inputModelo.value);
-
-      const colorPrevio = selectColor.value;
-      selectColor.innerHTML = '<option value="">Color</option>';
-      
-      if (colores.length > 0) {
-        colores.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = c;
-          selectColor.appendChild(opt);
-        });
-        if (colores.includes(colorPrevio)) {
-          selectColor.value = colorPrevio;
-        }
-      }
-    };
-
     window.agregarFilaVariante = function(contenedorId, modo, datos = { modelo: '', color: '', talla: 'M', cant: '', origen: 'comprar' }) {
       const cont = document.getElementById(contenedorId);
 
-      // Opciones de Color según la prenda seleccionada
-      const coloresDisponibles = obtenerColoresDeModelo(datos.modelo);
       let opcionesColor = '<option value="">Color</option>';
-      if (coloresDisponibles.length > 0) {
-        coloresDisponibles.forEach(c => {
-          const sel = (datos.color && datos.color.toLowerCase() === c.toLowerCase()) ? 'selected' : '';
-          opcionesColor += `<option value="${c}" ${sel}>${c}</option>`;
-        });
-      } else if (datos.color && datos.color !== 'undefined') {
+      if (datos.color && datos.color !== 'undefined') {
         opcionesColor += `<option value="${datos.color}" selected>${datos.color}</option>`;
       }
 
-      // Opciones de Talla estandarizadas
       let opcionesTalla = '';
       TALLAS_DISPONIBLES.forEach(t => {
         const sel = (datos.talla === t) ? 'selected' : '';
@@ -968,11 +994,18 @@
       const div = document.createElement('div');
       div.className = 'fila-variante grid grid-cols-12 gap-1.5 items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700/60';
       div.innerHTML = `
-        <!-- INPUT CON BUSCADOR AUTOMÁTICO (DATALIST) -->
-        <input type="text" list="lista-prendas-catalogo" placeholder="Buscar prenda..." value="${datos.modelo || ''}" oninput="window.actualizarColoresFila(this)" class="col-span-4 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-xs var-modelo-input focus:border-blue-500 focus:outline-none">
+        <!-- BUSCADOR INTERACTIVO DE PRENDA -->
+        <div class="col-span-4 relative prenda-search-wrapper">
+          <input type="text" placeholder="Buscar prenda..." value="${datos.modelo || ''}" 
+            onfocus="window.abrirMenuPrendasFila(this)" 
+            oninput="window.buscarPrendaEnFila(this)" 
+            autocomplete="off"
+            class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-xs var-modelo-input focus:border-blue-500 focus:outline-none">
+          <div class="prenda-search-results hidden absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl max-h-44 overflow-y-auto z-50 text-xs"></div>
+        </div>
 
-        <!-- COLOR DEPENDIENTE DE LA PRENDA DE ESTA FILA -->
-        <select class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium text-xs">
+        <!-- SELECTOR DE COLOR CON CARGA BAJO DEMANDA -->
+        <select onfocus="window.cargarColoresAlPicar(this)" onclick="window.cargarColoresAlPicar(this)" class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium text-xs focus:border-blue-500 focus:outline-none">
           ${opcionesColor}
         </select>
 
@@ -1994,7 +2027,7 @@
       }
     };
 
-    // MODAL EDITAR PEDIDO (COMPATIBLE CON PEDIDOS VIEJOS Y NUEVOS)
+    // MODAL EDITAR PEDIDO
     window.abrirModalEditar = function(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
