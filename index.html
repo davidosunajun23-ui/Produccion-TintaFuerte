@@ -203,7 +203,7 @@
           </div>
         </div>
 
-        <!-- ESTRUCTURA MODULAR CON BUSCADOR DE PRENDAS -->
+        <!-- ESTRUCTURA MODULAR CON BUSCADOR DINÁMICO DE PRENDAS -->
         <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <div class="flex justify-between items-center">
             <span class="font-bold text-blue-300 flex items-center gap-1.5">
@@ -550,13 +550,15 @@
     </div>
   </div>
 
-  <!-- MODAL GESTIONAR STOCK INDIVIDUAL (AMPLIADO Y CÓMODO) -->
+  <!-- ========================================== -->
+  <!-- MODAL: GESTIONAR STOCK CON CHECKLIST Y CONTADORES -->
+  <!-- ========================================== -->
   <div id="modal-gestionar-prendas" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4">
         <div>
           <h3 class="text-base font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-boxes-stacked text-amber-400"></i> Gestionar Stock de Prendas
+            <i class="fa-solid fa-boxes-stacked text-amber-400"></i> Recepción y Control de Prendas
           </h3>
           <p id="modal-gestionar-subtitulo" class="text-xs text-slate-400 font-mono mt-0.5"></p>
         </div>
@@ -565,28 +567,29 @@
 
       <div class="space-y-4 text-xs">
         <input type="hidden" id="modal-gestionar-id">
+
+        <!-- RESUMEN EN TIEMPO REAL DEL SURTIDO -->
+        <div id="modal-gestionar-barra-estado" class="p-3 rounded-xl border flex items-center justify-between"></div>
+
+        <!-- CONTENEDOR INTERACTIVO CON FILAS DE RECEPCIÓN -->
         <div>
-          <label class="block font-bold text-slate-300 uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
-            <i class="fa-solid fa-shirt text-blue-400"></i> Prendas Totales del Pedido:
+          <label class="block font-bold text-slate-300 uppercase tracking-wider text-[11px] mb-2 flex items-center justify-between">
+            <span>Prendas a surtir / recibir:</span>
+            <span class="text-[10px] text-slate-400 font-normal">Marca casilla o ajusta recibidas</span>
           </label>
-          <div id="modal-gestionar-total-prendas" class="p-3.5 bg-slate-900/90 rounded-xl text-slate-200 text-xs leading-relaxed border border-slate-700 shadow-inner max-h-48 overflow-y-auto font-mono whitespace-pre-wrap"></div>
+          <div id="modal-gestionar-lista-interactiva" class="space-y-2 max-h-72 overflow-y-auto p-1"></div>
         </div>
 
-        <div class="space-y-2">
-          <label class="block font-bold text-amber-300 text-xs flex items-center justify-between">
-            <span>Prendas pendientes con el proveedor:</span>
-            <span class="text-[10px] text-slate-400 font-normal">Puedes agrandar este cuadro arrastrando la esquina</span>
-          </label>
-          <textarea id="modal-gestionar-input-pendientes" rows="5" class="w-full bg-slate-900 border border-amber-500/40 focus:border-amber-400 focus:outline-none rounded-xl p-3 text-white text-xs leading-relaxed font-mono shadow-inner resize-y" placeholder="Ej. Falta conseguir: 4 Oversize Wusstek Blanco (CH), 2 Oversize Wusstek Blanco (M)"></textarea>
-          <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
-            <span class="text-amber-400">💡</span> Al vaciar este campo por completo, la orden se actualiza automáticamente como <strong>100% Completa</strong> para taller.
-          </p>
+        <!-- BLOQUE ADICIONAL PARA PEDIDOS VIEJOS O NOTAS EXTRAS -->
+        <div id="bloque-notas-viejas-stock" class="hidden space-y-1.5 pt-2 border-t border-slate-700">
+          <label class="block font-semibold text-slate-300">Notas adicionales / Pedidos de texto libre:</label>
+          <textarea id="modal-gestionar-input-pendientes-legacy" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono text-xs"></textarea>
         </div>
 
         <div class="flex justify-end gap-2 pt-3 border-t border-slate-700">
           <button onclick="cerrarModalGestionar()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white font-semibold">Cancelar</button>
           <button onclick="guardarGestionPrendas()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-5 py-2 rounded-lg shadow transition">
-            Guardar Estado
+            Guardar Estado de Stock
           </button>
         </div>
       </div>
@@ -672,6 +675,7 @@
     let imagenesEdicion = [];
     let subtabMostradorActual = 'activos';
     let terminoBusqueda = '';
+    let variantesGestionEnCurso = []; // Almacena el estado interactivo del modal de stock
     const TALLAS_DISPONIBLES = ['CH', 'M', 'G', 'XG', '2XG', '3XG', 'Unitalla'];
 
     // OYENTE EN TIEMPO REAL: PEDIDOS
@@ -894,7 +898,7 @@
     }
 
     // ====================================================
-    // BUSCADOR DE PRENDA INTEGRADO (DROPDOWN OSCURO)
+    // BUSCADOR CUSTOM DE PRENDA (DROPDOWN OSCURO INTEGRADO)
     // ====================================================
     window.buscarPrendaEnFila = function(input) {
       const contenedor = input.closest('.prenda-search-wrapper');
@@ -904,10 +908,10 @@
       const filtrados = catalogo.filter(c => normalizarTexto(c.modelo).includes(texto));
 
       if (filtrados.length === 0) {
-        menu.innerHTML = '<div class="p-2.5 text-slate-500 text-center text-xs">Sin coincidencias</div>';
+        menu.innerHTML = '<div class="p-2 text-slate-500 text-center text-[11px]">Sin coincidencias en catálogo</div>';
       } else {
         menu.innerHTML = filtrados.map(item => `
-          <div onclick="window.seleccionarPrendaFila(this, '${item.modelo}')" class="p-2.5 hover:bg-blue-600/40 hover:text-white cursor-pointer transition text-slate-200 border-b border-slate-700/60 last:border-0 font-medium">
+          <div onclick="window.seleccionarPrendaFila(this, '${item.modelo}')" class="p-2 hover:bg-blue-600/30 hover:text-white cursor-pointer transition text-slate-200 border-b border-slate-700/50 last:border-0 font-medium">
             ${item.modelo}
           </div>
         `).join('');
@@ -916,10 +920,7 @@
     };
 
     window.abrirMenuPrendasFila = function(input) {
-      const contenedor = input.closest('.prenda-search-wrapper');
-      const menu = contenedor.querySelector('.prenda-search-results');
       window.buscarPrendaEnFila(input);
-      menu.classList.remove('hidden');
     };
 
     window.seleccionarPrendaFila = function(elementoOpcion, modelo) {
@@ -931,7 +932,6 @@
       menu.classList.add('hidden');
     };
 
-    // Cerrar menús flotantes al hacer clic afuera
     document.addEventListener('click', function(e) {
       if (!e.target.closest('.prenda-search-wrapper')) {
         document.querySelectorAll('.prenda-search-results').forEach(m => m.classList.add('hidden'));
@@ -939,7 +939,7 @@
     });
 
     // ====================================================
-    // CARGA DE COLOR BAJO DEMANDA (AL HACER CLIC)
+    // CARGA DE COLOR BAJO DEMANDA
     // ====================================================
     window.cargarColoresAlPicar = function(selectColor) {
       const fila = selectColor.closest('.fila-variante');
@@ -975,7 +975,7 @@
       }
     };
 
-    window.agregarFilaVariante = function(contenedorId, modo, datos = { modelo: '', color: '', talla: 'M', cant: '', origen: 'comprar' }) {
+    window.agregarFilaVariante = function(contenedorId, modo, datos = { modelo: '', color: '', talla: 'M', cant: '', origen: 'comprar', recibidas: 0 }) {
       const cont = document.getElementById(contenedorId);
 
       let opcionesColor = '<option value="">Color</option>';
@@ -990,11 +990,13 @@
       });
 
       const origenActual = datos.origen || 'comprar';
+      const recibidas = datos.recibidas !== undefined ? datos.recibidas : (origenActual === 'cliente' ? (parseInt(datos.cant) || 0) : 0);
 
       const div = document.createElement('div');
       div.className = 'fila-variante grid grid-cols-12 gap-1.5 items-center bg-slate-800/80 p-2 rounded-lg border border-slate-700/60';
+      div.dataset.recibidas = recibidas;
+
       div.innerHTML = `
-        <!-- BUSCADOR INTERACTIVO DE PRENDA -->
         <div class="col-span-4 relative prenda-search-wrapper">
           <input type="text" placeholder="Buscar prenda..." value="${datos.modelo || ''}" 
             onfocus="window.abrirMenuPrendasFila(this)" 
@@ -1004,26 +1006,21 @@
           <div class="prenda-search-results hidden absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl max-h-44 overflow-y-auto z-50 text-xs"></div>
         </div>
 
-        <!-- SELECTOR DE COLOR CON CARGA BAJO DEMANDA -->
         <select onfocus="window.cargarColoresAlPicar(this)" onclick="window.cargarColoresAlPicar(this)" class="col-span-3 bg-slate-900 border border-slate-700 rounded p-1.5 text-white var-color-select font-medium text-xs focus:border-blue-500 focus:outline-none">
           ${opcionesColor}
         </select>
 
-        <!-- TALLA -->
         <select class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center text-xs var-talla-select">
           ${opcionesTalla}
         </select>
 
-        <!-- CANTIDAD -->
         <input type="number" min="1" placeholder="Cant." value="${datos.cant || ''}" oninput="recalcularTotalPrendasFormulario('${modo}')" class="col-span-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-white font-bold text-center text-xs var-cant">
 
-        <!-- ORIGEN / SUMINISTRO -->
         <select class="col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ${origenActual === 'cliente' ? 'text-emerald-400' : 'text-amber-400'}" onchange="this.className = 'col-span-2 bg-slate-900 border border-slate-700 rounded p-1 text-[11px] font-bold var-origen-select ' + (this.value === 'cliente' ? 'text-emerald-400' : 'text-amber-400')">
           <option value="comprar" class="text-amber-400" ${origenActual === 'comprar' ? 'selected' : ''}>🔴 Comprar</option>
           <option value="cliente" class="text-emerald-400" ${origenActual === 'cliente' ? 'selected' : ''}>🟢 Cliente</option>
         </select>
 
-        <!-- ELIMINAR -->
         <button type="button" onclick="eliminarFilaVariante(this, '${modo}')" class="col-span-1 text-slate-500 hover:text-rose-400 text-center text-sm font-bold" title="Eliminar">&times;</button>
       `;
       cont.appendChild(div);
@@ -1070,8 +1067,17 @@
           const t = f.querySelector('.var-talla-select').value.trim();
           const c = parseInt(f.querySelector('.var-cant').value) || 0;
           const origen = f.querySelector('.var-origen-select').value;
+          const recibidas = parseInt(f.dataset.recibidas) || (origen === 'cliente' ? c : 0);
+
           if (c > 0 && mod) {
-            variantes.push({ modelo: mod, color: col || '', talla: t || 'Única', cant: c, origen: origen });
+            variantes.push({ 
+              modelo: mod, 
+              color: col || '', 
+              talla: t || 'Única', 
+              cant: c, 
+              origen: origen,
+              recibidas: Math.min(c, Math.max(0, recibidas))
+            });
             totalPiezas += c;
             if (origen === 'comprar') totalPorComprar += c;
           }
@@ -1090,13 +1096,21 @@
         textoPrendas = `${totalPiezas} Prendas: ` + partesTexto.join(' / ');
       }
 
+      // Auto-generación precisa del faltante de stock basada en cantidad pedida menos recibida
       let textoPendientesAuto = '';
-      if (totalPorComprar > 0) {
-        const faltantes = variantes.filter(v => v.origen === 'comprar').map(v => {
-          const colorTxt = v.color ? ` ${v.color}` : '';
-          return `${v.cant} ${v.modelo}${colorTxt} (${v.talla})`;
-        }).join(', ');
-        textoPendientesAuto = `Falta comprar: ${faltantes}`;
+      const faltantesLista = [];
+      variantes.forEach(v => {
+        if (v.origen === 'comprar') {
+          const pendientePieza = Math.max(0, v.cant - (v.recibidas || 0));
+          if (pendientePieza > 0) {
+            const colorTxt = v.color ? ` ${v.color}` : '';
+            faltantesLista.push(`${pendientePieza} ${v.modelo}${colorTxt} (${v.talla})`);
+          }
+        }
+      });
+
+      if (faltantesLista.length > 0) {
+        textoPendientesAuto = `Falta surtir: ${faltantesLista.join(', ')}`;
       }
 
       return {
@@ -1235,7 +1249,8 @@
         if (p.prendasEstructura && p.prendasEstructura.variantes) {
           p.prendasEstructura.variantes.forEach(v => {
             if (v.origen === 'comprar') {
-              totalPiezasFaltantes += (parseInt(v.cant) || 0);
+              const pendiente = Math.max(0, (parseInt(v.cant) || 0) - (parseInt(v.recibidas) || 0));
+              totalPiezasFaltantes += pendiente;
             }
           });
         }
@@ -1266,32 +1281,37 @@
         if (p.prendasEstructura && Array.isArray(p.prendasEstructura.variantes) && p.prendasEstructura.variantes.length > 0) {
           p.prendasEstructura.variantes.forEach(v => {
             if (v.origen === 'comprar') {
-              const cant = parseInt(v.cant) || 0;
-              const modeloNombre = v.modelo || p.prendasEstructura.modelo || 'Prenda';
-              const colorNombre = (v.color && v.color !== 'undefined') ? v.color : 'Único';
-              const tallaNombre = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
+              const cantTotal = parseInt(v.cant) || 0;
+              const recibidas = parseInt(v.recibidas) || 0;
+              const pendiente = Math.max(0, cantTotal - recibidas);
 
-              const clave = `${modeloNombre}__${colorNombre}`;
-              
-              if (!mapaConsolidado[clave]) {
-                mapaConsolidado[clave] = {
-                  modelo: modeloNombre,
-                  color: colorNombre,
-                  total: 0,
-                  tallas: {},
-                  pedidosMap: {}
-                };
+              if (pendiente > 0) {
+                const modeloNombre = v.modelo || p.prendasEstructura.modelo || 'Prenda';
+                const colorNombre = (v.color && v.color !== 'undefined') ? v.color : 'Único';
+                const tallaNombre = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
+
+                const clave = `${modeloNombre}__${colorNombre}`;
+                
+                if (!mapaConsolidado[clave]) {
+                  mapaConsolidado[clave] = {
+                    modelo: modeloNombre,
+                    color: colorNombre,
+                    total: 0,
+                    tallas: {},
+                    pedidosMap: {}
+                  };
+                }
+
+                mapaConsolidado[clave].total += pendiente;
+                mapaConsolidado[clave].tallas[tallaNombre] = (mapaConsolidado[clave].tallas[tallaNombre] || 0) + pendiente;
+
+                if (!mapaConsolidado[clave].pedidosMap[p.id]) {
+                  mapaConsolidado[clave].pedidosMap[p.id] = { cliente: p.cliente, cant: 0 };
+                }
+                mapaConsolidado[clave].pedidosMap[p.id].cant += pendiente;
+
+                totalPrendasPorComprar += pendiente;
               }
-
-              mapaConsolidado[clave].total += cant;
-              mapaConsolidado[clave].tallas[tallaNombre] = (mapaConsolidado[clave].tallas[tallaNombre] || 0) + cant;
-
-              if (!mapaConsolidado[clave].pedidosMap[p.id]) {
-                mapaConsolidado[clave].pedidosMap[p.id] = { cliente: p.cliente, cant: 0 };
-              }
-              mapaConsolidado[clave].pedidosMap[p.id].cant += cant;
-
-              totalPrendasPorComprar += cant;
             }
           });
         } else if (p.prendasPendientes && p.prendasPendientes.trim() !== '') {
@@ -1321,7 +1341,7 @@
         <div class="bg-amber-950/30 border border-amber-500/40 p-3.5 rounded-xl flex justify-between items-center">
           <div>
             <span class="text-amber-400 font-bold block text-sm">Total de Piezas a Comprar: ${totalPrendasPorComprar} piezas</span>
-            <span class="text-[11px] text-slate-300">Sumatoria consolidada de todos los pedidos activos</span>
+            <span class="text-[11px] text-slate-300">Sumatoria consolidada de prendas que faltan recibir</span>
           </div>
           <span class="text-xs bg-amber-500 text-slate-950 font-black px-3 py-1 rounded-full">${itemsConsolidados.length} Modelos / Colores</span>
         </div>
@@ -1341,7 +1361,7 @@
                     <th class="py-2.5 px-3">Prenda / Modelo</th>
                     <th class="py-2.5 px-3">Color</th>
                     <th class="py-2.5 px-3">Corrida de Tallas</th>
-                    <th class="py-2.5 px-3 text-right">Total a Comprar</th>
+                    <th class="py-2.5 px-3 text-right">Faltante a Comprar</th>
                     <th class="py-2.5 px-3">Destino (Pedidos)</th>
                   </tr>
                 </thead>
@@ -1377,7 +1397,7 @@
             </tr>
           `;
 
-          textoWA += `• *${item.modelo}* — ${item.color} (*Total: ${item.total}*)\n  ↳ ${corridaTextoWA}\n`;
+          textoWA += `• *${item.modelo}* — ${item.color} (*Faltan: ${item.total}*)\n  ↳ ${corridaTextoWA}\n`;
         });
 
         html += `
@@ -1534,7 +1554,7 @@
     }
 
     // ====================================================
-    // VISTA TALLER (CON PRENDAS AGRUPADAS Y COMPACTAS)
+    // VISTA TALLER
     // ====================================================
     function renderizarTaller() {
       const grid = document.getElementById('grid-taller');
@@ -1633,7 +1653,7 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR (CON BUSCADOR ACTIVO Y FILTROS)
+    // VISTA MOSTRADOR
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
@@ -1677,17 +1697,21 @@
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-70 bg-slate-900/40' : ''}`;
         tr.innerHTML = `
+          <!-- FOLIO -->
           <td class="py-3 px-3 font-mono font-bold ${esCerrado ? 'text-slate-500' : 'text-blue-400'} whitespace-nowrap align-top">${p.id}</td>
           
+          <!-- CLIENTE -->
           <td class="py-3 px-3 align-top">
             <div class="font-bold text-white leading-tight">${p.cliente}</div>
             <div class="text-[11px] text-slate-400 leading-tight mt-0.5">${p.telefono || 'Sin tel'}</div>
           </td>
 
+          <!-- PRIORIDAD / FECHA -->
           <td class="py-3 px-3 whitespace-nowrap align-top">
             ${infoFecha.tieneFecha ? infoFecha.badgeHtml : '<span class="text-slate-600 text-xs">—</span>'}
           </td>
 
+          <!-- PRENDAS Y TALLAS COMPACTAS Y AGRUPADAS -->
           <td class="py-3 px-3 align-top min-w-[320px]">
             ${renderizarHtmlPrendas(p, 'tabla')}
             ${tienePendiente ? `
@@ -1697,6 +1721,7 @@
             ` : ''}
           </td>
 
+          <!-- ESTATUS -->
           <td class="py-3 px-3 whitespace-nowrap align-top">
             <select onchange="window.actualizarEstatus('${p.id}', this.value)" class="bg-slate-900 text-xs border border-slate-700 rounded p-1.5 text-slate-200 focus:ring-0">
               <option value="Listo para Máquina" ${p.estatus === 'Listo para Máquina' ? 'selected' : ''}>🔵 Máquina</option>
@@ -1706,13 +1731,18 @@
             </select>
           </td>
 
+          <!-- TOTAL -->
           <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-top">$${formatDinero(p.total)}</td>
+
+          <!-- PAGADO -->
           <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-top">$${formatDinero(pagado)}</td>
 
+          <!-- SALDO -->
           <td class="py-3 px-2.5 text-right font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'} whitespace-nowrap align-top">
             ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + formatDinero(saldo)}
           </td>
 
+          <!-- ACCIONES -->
           <td class="py-3 px-3 text-center whitespace-nowrap align-top">
             <div class="inline-flex items-center gap-1.5">
               <button id="btn-copy-${p.id}" onclick="window.copiarResumenJefe('${p.id}')" class="bg-emerald-700/40 hover:bg-emerald-600/60 text-emerald-300 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition" title="Copiar resumen para WhatsApp">
@@ -2091,7 +2121,7 @@
         total: parseFloat(document.getElementById('edit-total').value) || 0
       };
 
-      if (infoPrendas.prendasPendientes) {
+      if (infoPrendas.prendasPendientes !== undefined) {
         dataActualizada.prendasPendientes = infoPrendas.prendasPendientes;
       }
 
@@ -2184,7 +2214,7 @@
     };
 
     // ====================================================
-    // MODAL GESTIONAR STOCK INDIVIDUAL (AMPLIADO)
+    // MODAL GESTIONAR STOCK CON CHECKLIST Y CONTADORES
     // ====================================================
     window.abrirModalGestionar = function(id) {
       const p = pedidos.find(item => item.id === id);
@@ -2193,23 +2223,28 @@
       document.getElementById('modal-gestionar-id').value = p.id;
       document.getElementById('modal-gestionar-subtitulo').innerText = `${p.id} — ${p.cliente}`;
       
-      const contenedorPrendas = document.getElementById('modal-gestionar-total-prendas');
-      if (p.prendasEstructura && Array.isArray(p.prendasEstructura.variantes)) {
-        let textoDesglose = `Total: ${p.prendasEstructura.cantTotal || 0} prendas\n`;
-        p.prendasEstructura.variantes.forEach((v) => {
-          const mod = v.modelo || p.prendasEstructura.modelo || 'Prenda';
-          const col = (v.color && v.color !== 'undefined') ? v.color : '';
-          const t = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
-          const origen = v.origen === 'cliente' ? '[Cliente]' : '[Comprar]';
-          const colTxt = col ? ` ${col}` : '';
-          textoDesglose += `• (${v.cant}) ${mod}${colTxt} Talla ${t} ${origen}\n`;
-        });
-        contenedorPrendas.innerText = textoDesglose;
+      const contenedorLista = document.getElementById('modal-gestionar-lista-interactiva');
+      const bloqueLegacy = document.getElementById('bloque-notas-viejas-stock');
+      const inputLegacy = document.getElementById('modal-gestionar-input-pendientes-legacy');
+
+      variantesGestionEnCurso = [];
+
+      if (p.prendasEstructura && Array.isArray(p.prendasEstructura.variantes) && p.prendasEstructura.variantes.length > 0) {
+        bloqueLegacy.classList.add('hidden');
+        // Clonar variantes para manipular recibidas
+        variantesGestionEnCurso = p.prendasEstructura.variantes.map(v => ({
+          ...v,
+          recibidas: v.recibidas !== undefined ? v.recibidas : (v.origen === 'cliente' ? (parseInt(v.cant) || 0) : 0)
+        }));
+        renderizarFilasGestionStock();
       } else {
-        contenedorPrendas.innerText = p.prendas || 'Sin desglose registrado';
+        // Modo compatible para pedidos viejos en texto libre
+        contenedorLista.innerHTML = `<div class="p-3 bg-slate-900 rounded-lg text-slate-300 font-medium">${p.prendas || 'Sin prendas estructuradas'}</div>`;
+        bloqueLegacy.classList.remove('hidden');
+        inputLegacy.value = p.prendasPendientes || '';
+        actualizarBarraEstadoStockLegacy(p.prendasPendientes);
       }
 
-      document.getElementById('modal-gestionar-input-pendientes').value = p.prendasPendientes || '';
       document.getElementById('modal-gestionar-prendas').classList.remove('hidden');
     };
 
@@ -2217,15 +2252,170 @@
       document.getElementById('modal-gestionar-prendas').classList.add('hidden');
     };
 
+    function renderizarFilasGestionStock() {
+      const contenedor = document.getElementById('modal-gestionar-lista-interactiva');
+      contenedor.innerHTML = '';
+
+      let totalPiezasOrden = 0;
+      let totalPiezasRecibidas = 0;
+      let totalPiezasPendientes = 0;
+
+      variantesGestionEnCurso.forEach((v, index) => {
+        const cant = parseInt(v.cant) || 0;
+        const recibidas = Math.min(cant, Math.max(0, parseInt(v.recibidas) || 0));
+        const falta = Math.max(0, cant - recibidas);
+        const esCompleto = falta === 0;
+
+        totalPiezasOrden += cant;
+        totalPiezasRecibidas += recibidas;
+        totalPiezasPendientes += falta;
+
+        const mod = v.modelo || 'Prenda';
+        const col = (v.color && v.color !== 'undefined') ? v.color : '';
+        const t = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
+        const esCliente = v.origen === 'cliente';
+
+        const fila = document.createElement('div');
+        fila.className = `p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-2 transition ${
+          esCompleto 
+            ? 'bg-emerald-950/20 border-emerald-500/40' 
+            : (recibidas > 0 ? 'bg-amber-950/20 border-amber-500/40' : 'bg-slate-900 border-slate-700/80')
+        }`;
+
+        fila.innerHTML = `
+          <!-- INFORMACIÓN DE LA VARIANTE -->
+          <div class="flex items-center gap-2.5 min-w-[200px]">
+            <button type="button" onclick="window.toggleSurtirTodo(${index})" class="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs border transition ${
+              esCompleto 
+                ? 'bg-emerald-500 text-slate-950 border-emerald-400' 
+                : 'bg-slate-800 text-slate-400 border-slate-600 hover:border-emerald-400'
+            }" title="Marcar como totalmente surtido">
+              <i class="fa-solid fa-check"></i>
+            </button>
+            <div>
+              <div class="font-bold text-white text-xs leading-tight">
+                ${mod} ${col} <span class="text-sky-400">(${t})</span>
+                ${esCliente ? '<span class="text-[9px] bg-emerald-900/60 text-emerald-300 px-1 py-0.2 rounded ml-1 font-semibold">Trajo Cliente</span>' : ''}
+              </div>
+              <div class="text-[11px] mt-0.5 font-medium ${esCompleto ? 'text-emerald-400' : (recibidas > 0 ? 'text-amber-300' : 'text-slate-400')}">
+                ${esCompleto ? '✓ Totalmente recibido' : (recibidas > 0 ? `Llegaron ${recibidas} de ${cant} (Faltan ${falta})` : `Pendiente por surtir (${falta} piezas)`)}
+              </div>
+            </div>
+          </div>
+
+          <!-- CONTROLES RÁPIDOS (- / +) -->
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="window.ajustarRecibidas(${index}, -1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 flex items-center justify-center font-bold text-xs shadow transition">-</button>
+            <span class="w-10 text-center font-black font-mono text-sm ${esCompleto ? 'text-emerald-400' : 'text-white'}">${recibidas} / ${cant}</span>
+            <button type="button" onclick="window.ajustarRecibidas(${index}, 1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 flex items-center justify-center font-bold text-xs shadow transition">+</button>
+            <button type="button" onclick="window.toggleSurtirTodo(${index})" class="ml-1 text-[11px] font-bold px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
+              ${esCompleto ? 'Desmarcar' : 'Surtir Todo'}
+            </button>
+          </div>
+        `;
+        contenedor.appendChild(fila);
+      });
+
+      // Actualizar la barra superior del modal
+      const barra = document.getElementById('modal-gestionar-barra-estado');
+      if (totalPiezasPendientes === 0) {
+        barra.className = 'p-3 rounded-xl border bg-emerald-950/40 border-emerald-500/50 flex items-center justify-between text-emerald-300';
+        barra.innerHTML = `
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-base text-emerald-400"></i>
+            <div>
+              <strong class="block text-xs font-bold leading-tight">Prendas 100% Completas</strong>
+              <span class="text-[10px] text-emerald-400/80">Listas en taller para producción</span>
+            </div>
+          </div>
+          <span class="text-xs font-mono font-bold">${totalPiezasRecibidas} de ${totalPiezasOrden} piezas</span>
+        `;
+      } else {
+        barra.className = 'p-3 rounded-xl border bg-amber-950/40 border-amber-500/50 flex items-center justify-between text-amber-300';
+        barra.innerHTML = `
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-boxes-packing text-base text-amber-400"></i>
+            <div>
+              <strong class="block text-xs font-bold leading-tight">Stock Parcial: Faltan ${totalPiezasPendientes} piezas</strong>
+              <span class="text-[10px] text-amber-300/80">Se actualizará la lista de compras automáticamente</span>
+            </div>
+          </div>
+          <span class="text-xs font-mono font-bold">${totalPiezasRecibidas} de ${totalPiezasOrden} recibidas</span>
+        `;
+      }
+    }
+
+    function actualizarBarraEstadoStockLegacy(textoPendientes) {
+      const barra = document.getElementById('modal-gestionar-barra-estado');
+      if (!textoPendientes || textoPendientes.trim() === '') {
+        barra.className = 'p-3 rounded-xl border bg-emerald-950/40 border-emerald-500/50 flex items-center gap-2 text-emerald-300';
+        barra.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> <strong class="text-xs font-bold">100% Completa en taller</strong>';
+      } else {
+        barra.className = 'p-3 rounded-xl border bg-amber-950/40 border-amber-500/50 flex items-center gap-2 text-amber-300';
+        barra.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> <span class="text-xs font-medium">Faltante: ${textoPendientes}</span>`;
+      }
+    }
+
+    window.toggleSurtirTodo = function(index) {
+      const v = variantesGestionEnCurso[index];
+      if (!v) return;
+      const cant = parseInt(v.cant) || 0;
+      if (v.recibidas >= cant) {
+        v.recibidas = 0;
+      } else {
+        v.recibidas = cant;
+      }
+      renderizarFilasGestionStock();
+    };
+
+    window.ajustarRecibidas = function(index, delta) {
+      const v = variantesGestionEnCurso[index];
+      if (!v) return;
+      const cant = parseInt(v.cant) || 0;
+      const actual = parseInt(v.recibidas) || 0;
+      v.recibidas = Math.min(cant, Math.max(0, actual + delta));
+      renderizarFilasGestionStock();
+    };
+
     window.guardarGestionPrendas = async function() {
       const id = document.getElementById('modal-gestionar-id').value;
-      const pendientes = document.getElementById('modal-gestionar-input-pendientes').value.trim();
+      const p = pedidos.find(item => item.id === id);
+      if (!p) return;
+
+      let dataUpdate = {};
+
+      if (variantesGestionEnCurso.length > 0) {
+        // Armar el texto faltante automáticamente
+        const faltantes = [];
+        variantesGestionEnCurso.forEach(v => {
+          if (v.origen === 'comprar') {
+            const falta = Math.max(0, (parseInt(v.cant) || 0) - (parseInt(v.recibidas) || 0));
+            if (falta > 0) {
+              const colTxt = (v.color && v.color !== 'undefined') ? ` ${v.color}` : '';
+              faltantes.push(`${falta} ${v.modelo}${colTxt} (${v.talla})`);
+            }
+          }
+        });
+
+        const textoPendientesFinal = faltantes.length > 0 ? `Falta surtir: ${faltantes.join(', ')}` : '';
+
+        dataUpdate = {
+          prendasPendientes: textoPendientesFinal,
+          "prendasEstructura.variantes": variantesGestionEnCurso
+        };
+      } else {
+        // Pedido viejo en texto libre
+        const textoLegacy = document.getElementById('modal-gestionar-input-pendientes-legacy').value.trim();
+        dataUpdate = {
+          prendasPendientes: textoLegacy
+        };
+      }
 
       try {
-        await updateDoc(doc(db, "pedidos", id), { prendasPendientes: pendientes });
+        await updateDoc(doc(db, "pedidos", id), dataUpdate);
         cerrarModalGestionar();
       } catch (err) {
-        console.error("Error al actualizar prendas:", err);
+        console.error("Error al actualizar estado de stock:", err);
       }
     };
 
