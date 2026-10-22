@@ -62,7 +62,7 @@
         </button>
       </div>
 
-      <!-- BOTONES SUPERIORES: CATÁLOGO Y NUEVO PEDIDO -->
+      <!-- BOTONES SUPERIORES -->
       <div class="flex items-center gap-2">
         <button onclick="abrirModalCatalogo()" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 font-semibold px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 shadow transition" title="Administrar catálogo de prendas y colores">
           <i class="fa-solid fa-tags text-sky-400"></i> Catálogo
@@ -451,36 +451,75 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- MODAL: STOCK PENDIENTE GENERAL (INFORME) -->
+  <!-- MODAL: STOCK PENDIENTE GENERAL (CON CHECKLIST MASIVO) -->
   <!-- ========================================== -->
   <div id="modal-stock-general" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-4xl rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-4 no-print">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-4xl rounded-2xl p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-3 no-print">
         <div class="flex items-center gap-2">
           <div class="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
             <i class="fa-solid fa-boxes-packing text-lg"></i>
           </div>
           <div>
-            <h3 class="text-base font-bold text-white leading-tight">Lista Consolidada de Compras Pendientes</h3>
-            <p class="text-xs text-slate-400">Prendas faltantes que nosotros debemos surtir / comprar</p>
+            <h3 class="text-base font-bold text-white leading-tight">Centro de Control de Stock General</h3>
+            <p class="text-xs text-slate-400">Compras consolidadas con proveedor y recepción masiva en taller</p>
           </div>
         </div>
         <button onclick="cerrarModalStockGeneral()" class="text-slate-400 hover:text-white text-xl">&times;</button>
       </div>
 
-      <div id="contenido-stock-general" class="space-y-4 text-xs">
-        <div class="text-center py-8 text-slate-400">Calculando prendas pendientes...</div>
+      <!-- SUBPESTAÑAS DE CONTROL DE STOCK -->
+      <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700 text-xs font-bold mb-4 no-print">
+        <button id="btn-subtab-stock-compras" onclick="cambiarSubtabStock('compras')" class="px-4 py-2 rounded-lg transition flex items-center gap-2 bg-amber-600 text-white shadow">
+          <i class="fa-solid fa-list-check"></i> 1. Lista de Compras (Consolidada)
+        </button>
+        <button id="btn-subtab-stock-recepcion" onclick="cambiarSubtabStock('recepcion')" class="px-4 py-2 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white">
+          <i class="fa-solid fa-boxes-stacked"></i> 2. Checklist de Recepción Masiva
+        </button>
       </div>
 
-      <div class="flex justify-between items-center pt-4 border-t border-slate-700 mt-4 no-print">
-        <button id="btn-copiar-stock" onclick="copiarReporteStockWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
-          <i class="fa-solid fa-copy"></i> Copiar para WhatsApp
-        </button>
-        <div class="flex gap-2">
-          <button onclick="imprimirStockGeneral()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
-            <i class="fa-solid fa-print"></i> Imprimir / PDF
+      <!-- VISTA 1: LISTA CONSOLIDADA DE COMPRAS -->
+      <div id="vista-stock-compras" class="space-y-4 text-xs">
+        <div id="contenido-stock-compras" class="space-y-4">
+          <div class="text-center py-8 text-slate-400">Calculando prendas pendientes...</div>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-slate-700 no-print">
+          <button id="btn-copiar-stock" onclick="copiarReporteStockWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+            <i class="fa-solid fa-copy"></i> Copiar para WhatsApp
           </button>
-          <button onclick="cerrarModalStockGeneral()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white text-xs">Cerrar</button>
+          <div class="flex gap-2">
+            <button onclick="imprimirStockGeneral()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
+              <i class="fa-solid fa-print"></i> Imprimir / PDF
+            </button>
+            <button onclick="cerrarModalStockGeneral()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white text-xs font-semibold">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA 2: CHECKLIST DE RECEPCIÓN MASIVA POR ORDEN -->
+      <div id="vista-stock-recepcion" class="hidden space-y-4 text-xs">
+        <div class="bg-blue-950/30 border border-blue-500/40 p-3 rounded-xl flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-dolly text-blue-400 text-base"></i>
+            <div>
+              <strong class="text-white text-xs block">Recepción de Prendas en Mesa de Trabajo</strong>
+              <span class="text-[11px] text-slate-300">Marca las prendas que van llegando de los pedidos activos y guarda todo junto</span>
+            </div>
+          </div>
+          <button onclick="guardarRecepcionMasivaStock()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar Todo en Nube
+          </button>
+        </div>
+
+        <div id="contenido-stock-recepcion-masiva" class="space-y-3 max-h-[55vh] overflow-y-auto p-1">
+          <!-- Tarjetas interactivas de cada pedido -->
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-700 no-print">
+          <button onclick="cerrarModalStockGeneral()" class="px-4 py-2 rounded-lg text-slate-400 hover:text-white text-xs font-semibold">Cerrar</button>
+          <button onclick="guardarRecepcionMasivaStock()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-2 rounded-lg text-xs shadow-lg flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar Todo en Nube
+          </button>
         </div>
       </div>
     </div>
@@ -551,7 +590,7 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- MODAL: GESTIONAR STOCK CON CHECKLIST Y CONTADORES -->
+  <!-- MODAL: GESTIONAR STOCK INDIVIDUAL (POR ORDEN) -->
   <!-- ========================================== -->
   <div id="modal-gestionar-prendas" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
@@ -674,8 +713,10 @@
     let imagenesTemporales = [];
     let imagenesEdicion = [];
     let subtabMostradorActual = 'activos';
+    let subtabStockActual = 'compras';
     let terminoBusqueda = '';
-    let variantesGestionEnCurso = []; // Almacena el estado interactivo del modal de stock
+    let variantesGestionEnCurso = [];
+    let mapaRecepcionMasiva = {}; // Almacena estados interactivos de múltiples órdenes en stock general
     const TALLAS_DISPONIBLES = ['CH', 'M', 'G', 'XG', '2XG', '3XG', 'Unitalla'];
 
     // OYENTE EN TIEMPO REAL: PEDIDOS
@@ -1096,7 +1137,6 @@
         textoPrendas = `${totalPiezas} Prendas: ` + partesTexto.join(' / ');
       }
 
-      // Auto-generación precisa del faltante de stock basada en cantidad pedida menos recibida
       let textoPendientesAuto = '';
       const faltantesLista = [];
       variantes.forEach(v => {
@@ -1237,7 +1277,7 @@
     }
 
     // ====================================================
-    // INFORME CONSOLIDADO: AGRUPADO POR PRENDA + COLOR
+    // INFORME Y CHECKLIST MASIVO DE STOCK GENERAL
     // ====================================================
     let resumenStockWhatsAppGlobal = "";
 
@@ -1261,7 +1301,9 @@
     }
 
     window.abrirModalStockGeneral = function() {
+      cambiarSubtabStock('compras');
       generarInformeStockGeneral();
+      generarChecklistMasivoStock();
       document.getElementById('modal-stock-general').classList.remove('hidden');
     };
 
@@ -1269,8 +1311,31 @@
       document.getElementById('modal-stock-general').classList.add('hidden');
     };
 
+    window.cambiarSubtabStock = function(subtab) {
+      subtabStockActual = subtab;
+      const btnCompras = document.getElementById('btn-subtab-stock-compras');
+      const btnRecepcion = document.getElementById('btn-subtab-stock-recepcion');
+      const vistaCompras = document.getElementById('vista-stock-compras');
+      const vistaRecepcion = document.getElementById('vista-stock-recepcion');
+
+      if (subtab === 'compras') {
+        vistaCompras.classList.remove('hidden');
+        vistaRecepcion.classList.add('hidden');
+        btnCompras.className = 'px-4 py-2 rounded-lg transition flex items-center gap-2 bg-amber-600 text-white shadow';
+        btnRecepcion.className = 'px-4 py-2 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white';
+        generarInformeStockGeneral();
+      } else {
+        vistaCompras.classList.add('hidden');
+        vistaRecepcion.classList.remove('hidden');
+        btnRecepcion.className = 'px-4 py-2 rounded-lg transition flex items-center gap-2 bg-blue-600 text-white shadow';
+        btnCompras.className = 'px-4 py-2 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white';
+        generarChecklistMasivoStock();
+      }
+    };
+
+    // VISTA 1: INFORME CONSOLIDADO (AGRUPADO PARA COMPRAS)
     function generarInformeStockGeneral() {
-      const contenedor = document.getElementById('contenido-stock-general');
+      const contenedor = document.getElementById('contenido-stock-compras');
       const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
 
       const mapaConsolidado = {};
@@ -1432,6 +1497,187 @@
       contenedor.innerHTML = html;
       resumenStockWhatsAppGlobal = textoWA;
     }
+
+    // VISTA 2: CHECKLIST DE RECEPCIÓN MASIVA POR ORDEN
+    function generarChecklistMasivoStock() {
+      const contenedor = document.getElementById('contenido-stock-recepcion-masiva');
+      contenedor.innerHTML = '';
+      mapaRecepcionMasiva = {};
+
+      const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
+      
+      // Filtrar órdenes que tienen prendas a comprar
+      const ordenesConPendientes = activos.filter(p => {
+        if (!p.prendasEstructura || !Array.isArray(p.prendasEstructura.variantes)) return false;
+        return p.prendasEstructura.variantes.some(v => v.origen === 'comprar');
+      });
+
+      if (ordenesConPendientes.length === 0) {
+        contenedor.innerHTML = `
+          <div class="text-center py-12 text-slate-400">
+            <i class="fa-solid fa-circle-check text-4xl text-emerald-400 mb-2"></i>
+            <h4 class="font-bold text-white text-sm">No hay órdenes con prendas por surtir</h4>
+            <p class="text-xs text-slate-500 mt-1">Todos los pedidos tienen sus piezas recibidas o fueron traídas por el cliente.</p>
+          </div>
+        `;
+        return;
+      }
+
+      ordenesConPendientes.forEach(p => {
+        // Inicializar copia en memoria para la orden
+        mapaRecepcionMasiva[p.id] = p.prendasEstructura.variantes.map(v => ({
+          ...v,
+          recibidas: v.recibidas !== undefined ? v.recibidas : (v.origen === 'cliente' ? (parseInt(v.cant) || 0) : 0)
+        }));
+
+        const tarjeta = document.createElement('div');
+        tarjeta.id = `card-masiva-${p.id}`;
+        tarjeta.className = 'bg-slate-900 border border-slate-700/80 rounded-xl p-3 space-y-2';
+
+        contenedor.appendChild(tarjeta);
+        renderizarTarjetaOrdenMasiva(p.id, p.cliente);
+      });
+    }
+
+    function renderizarTarjetaOrdenMasiva(pedidoId, clienteNombre) {
+      const tarjeta = document.getElementById(`card-masiva-${pedidoId}`);
+      if (!tarjeta) return;
+
+      const variantes = mapaRecepcionMasiva[pedidoId] || [];
+      let totalPiezas = 0;
+      let totalRecibidas = 0;
+      let totalFaltantes = 0;
+
+      let filasHtml = '';
+      variantes.forEach((v, idx) => {
+        if (v.origen === 'comprar') {
+          const cant = parseInt(v.cant) || 0;
+          const recibidas = Math.min(cant, Math.max(0, parseInt(v.recibidas) || 0));
+          const falta = Math.max(0, cant - recibidas);
+          const completo = falta === 0;
+
+          totalPiezas += cant;
+          totalRecibidas += recibidas;
+          totalFaltantes += falta;
+
+          const mod = v.modelo || 'Prenda';
+          const col = (v.color && v.color !== 'undefined') ? v.color : '';
+          const t = (v.talla && v.talla !== 'undefined') ? v.talla : 'Única';
+
+          filasHtml += `
+            <div class="flex items-center justify-between p-2 rounded-lg border ${
+              completo ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300' : (recibidas > 0 ? 'bg-amber-950/20 border-amber-500/40' : 'bg-slate-800/60 border-slate-700/60')
+            }">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="window.toggleSurtirTodoMasivo('${pedidoId}', ${idx})" class="w-5 h-5 rounded flex items-center justify-center font-bold text-[10px] border transition ${
+                  completo ? 'bg-emerald-500 text-slate-950 border-emerald-400' : 'bg-slate-900 text-slate-400 border-slate-600 hover:border-emerald-400'
+                }">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+                <div>
+                  <span class="font-bold text-white text-xs">${mod} ${col} (${t})</span>
+                  <span class="text-[10px] ml-1.5 font-medium ${completo ? 'text-emerald-400' : (recibidas > 0 ? 'text-amber-300' : 'text-slate-400')}">
+                    ${completo ? '✓ Recibido' : (recibidas > 0 ? `Llegaron ${recibidas} de ${cant} (Faltan ${falta})` : `Faltan ${falta}`)}
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="window.ajustarRecibidasMasivo('${pedidoId}', ${idx}, -1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-bold text-xs">-</button>
+                <span class="w-8 text-center font-black font-mono text-xs ${completo ? 'text-emerald-400' : 'text-white'}">${recibidas}/${cant}</span>
+                <button type="button" onclick="window.ajustarRecibidasMasivo('${pedidoId}', ${idx}, 1)" class="w-6 h-6 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 font-bold text-xs">+</button>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      const ordenCompleta = totalFaltantes === 0;
+
+      tarjeta.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between pb-1.5 border-b border-slate-800 gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-black text-blue-400 text-xs">${pedidoId}</span>
+            <strong class="text-white text-xs">${clienteNombre}</strong>
+            <span class="text-[10px] px-2 py-0.2 rounded-full font-bold ${
+              ordenCompleta ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+            }">
+              ${ordenCompleta ? '✓ Completo' : `Faltan ${totalFaltantes} piezas`}
+            </span>
+          </div>
+          <button type="button" onclick="window.surtirTodaLaOrdenMasiva('${pedidoId}', ${ordenCompleta})" class="text-[11px] font-bold px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+            ${ordenCompleta ? 'Desmarcar toda' : '✓ Surtir Toda la Orden'}
+          </button>
+        </div>
+        <div class="space-y-1.5 pt-1">
+          ${filasHtml}
+        </div>
+      `;
+    }
+
+    window.toggleSurtirTodoMasivo = function(pedidoId, idx) {
+      const v = mapaRecepcionMasiva[pedidoId][idx];
+      const cant = parseInt(v.cant) || 0;
+      v.recibidas = (v.recibidas >= cant) ? 0 : cant;
+      
+      const p = pedidos.find(item => item.id === pedidoId);
+      renderizarTarjetaOrdenMasiva(pedidoId, p ? p.cliente : '');
+    };
+
+    window.ajustarRecibidasMasivo = function(pedidoId, idx, delta) {
+      const v = mapaRecepcionMasiva[pedidoId][idx];
+      const cant = parseInt(v.cant) || 0;
+      const actual = parseInt(v.recibidas) || 0;
+      v.recibidas = Math.min(cant, Math.max(0, actual + delta));
+
+      const p = pedidos.find(item => item.id === pedidoId);
+      renderizarTarjetaOrdenMasiva(pedidoId, p ? p.cliente : '');
+    };
+
+    window.surtirTodaLaOrdenMasiva = function(pedidoId, estabaCompleta) {
+      const variantes = mapaRecepcionMasiva[pedidoId] || [];
+      variantes.forEach(v => {
+        if (v.origen === 'comprar') {
+          v.recibidas = estabaCompleta ? 0 : (parseInt(v.cant) || 0);
+        }
+      });
+      const p = pedidos.find(item => item.id === pedidoId);
+      renderizarTarjetaOrdenMasiva(pedidoId, p ? p.cliente : '');
+    };
+
+    window.guardarRecepcionMasivaStock = async function() {
+      const ids = Object.keys(mapaRecepcionMasiva);
+      if (ids.length === 0) return;
+
+      try {
+        for (const id of ids) {
+          const variantes = mapaRecepcionMasiva[id];
+          const faltantes = [];
+
+          variantes.forEach(v => {
+            if (v.origen === 'comprar') {
+              const falta = Math.max(0, (parseInt(v.cant) || 0) - (parseInt(v.recibidas) || 0));
+              if (falta > 0) {
+                const colTxt = (v.color && v.color !== 'undefined') ? ` ${v.color}` : '';
+                faltantes.push(`${falta} ${v.modelo}${colTxt} (${v.talla})`);
+              }
+            }
+          });
+
+          const textoPendientesFinal = faltantes.length > 0 ? `Falta surtir: ${faltantes.join(', ')}` : '';
+
+          await updateDoc(doc(db, "pedidos", id), {
+            prendasPendientes: textoPendientesFinal,
+            "prendasEstructura.variantes": variantes
+          });
+        }
+
+        alert("¡Recepción masiva de stock guardada exitosamente en la nube!");
+        cerrarModalStockGeneral();
+      } catch (err) {
+        console.error("Error al guardar recepción masiva:", err);
+        alert("Ocurrió un error al guardar los cambios masivos.");
+      }
+    };
 
     window.copiarReporteStockWhatsApp = function() {
       navigator.clipboard.writeText(resumenStockWhatsAppGlobal).then(() => {
@@ -1697,21 +1943,17 @@
         const tr = document.createElement('tr');
         tr.className = `hover:bg-slate-700/30 transition ${esCerrado ? 'opacity-70 bg-slate-900/40' : ''}`;
         tr.innerHTML = `
-          <!-- FOLIO -->
           <td class="py-3 px-3 font-mono font-bold ${esCerrado ? 'text-slate-500' : 'text-blue-400'} whitespace-nowrap align-top">${p.id}</td>
           
-          <!-- CLIENTE -->
           <td class="py-3 px-3 align-top">
             <div class="font-bold text-white leading-tight">${p.cliente}</div>
             <div class="text-[11px] text-slate-400 leading-tight mt-0.5">${p.telefono || 'Sin tel'}</div>
           </td>
 
-          <!-- PRIORIDAD / FECHA -->
           <td class="py-3 px-3 whitespace-nowrap align-top">
             ${infoFecha.tieneFecha ? infoFecha.badgeHtml : '<span class="text-slate-600 text-xs">—</span>'}
           </td>
 
-          <!-- PRENDAS Y TALLAS COMPACTAS Y AGRUPADAS -->
           <td class="py-3 px-3 align-top min-w-[320px]">
             ${renderizarHtmlPrendas(p, 'tabla')}
             ${tienePendiente ? `
@@ -1721,7 +1963,6 @@
             ` : ''}
           </td>
 
-          <!-- ESTATUS -->
           <td class="py-3 px-3 whitespace-nowrap align-top">
             <select onchange="window.actualizarEstatus('${p.id}', this.value)" class="bg-slate-900 text-xs border border-slate-700 rounded p-1.5 text-slate-200 focus:ring-0">
               <option value="Listo para Máquina" ${p.estatus === 'Listo para Máquina' ? 'selected' : ''}>🔵 Máquina</option>
@@ -1731,18 +1972,13 @@
             </select>
           </td>
 
-          <!-- TOTAL -->
           <td class="py-3 px-2.5 text-right font-bold text-slate-200 whitespace-nowrap align-top">$${formatDinero(p.total)}</td>
-
-          <!-- PAGADO -->
           <td class="py-3 px-2.5 text-right font-bold text-emerald-400 whitespace-nowrap align-top">$${formatDinero(pagado)}</td>
 
-          <!-- SALDO -->
           <td class="py-3 px-2.5 text-right font-bold ${liquidado ? 'text-emerald-400' : 'text-rose-400'} whitespace-nowrap align-top">
             ${liquidado ? '<span class="text-[11px] bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded text-emerald-300">Liquidado</span>' : '$' + formatDinero(saldo)}
           </td>
 
-          <!-- ACCIONES -->
           <td class="py-3 px-3 text-center whitespace-nowrap align-top">
             <div class="inline-flex items-center gap-1.5">
               <button id="btn-copy-${p.id}" onclick="window.copiarResumenJefe('${p.id}')" class="bg-emerald-700/40 hover:bg-emerald-600/60 text-emerald-300 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition" title="Copiar resumen para WhatsApp">
@@ -2214,7 +2450,7 @@
     };
 
     // ====================================================
-    // MODAL GESTIONAR STOCK CON CHECKLIST Y CONTADORES
+    // MODAL GESTIONAR STOCK INDIVIDUAL (POR ORDEN)
     // ====================================================
     window.abrirModalGestionar = function(id) {
       const p = pedidos.find(item => item.id === id);
@@ -2231,14 +2467,12 @@
 
       if (p.prendasEstructura && Array.isArray(p.prendasEstructura.variantes) && p.prendasEstructura.variantes.length > 0) {
         bloqueLegacy.classList.add('hidden');
-        // Clonar variantes para manipular recibidas
         variantesGestionEnCurso = p.prendasEstructura.variantes.map(v => ({
           ...v,
           recibidas: v.recibidas !== undefined ? v.recibidas : (v.origen === 'cliente' ? (parseInt(v.cant) || 0) : 0)
         }));
         renderizarFilasGestionStock();
       } else {
-        // Modo compatible para pedidos viejos en texto libre
         contenedorLista.innerHTML = `<div class="p-3 bg-slate-900 rounded-lg text-slate-300 font-medium">${p.prendas || 'Sin prendas estructuradas'}</div>`;
         bloqueLegacy.classList.remove('hidden');
         inputLegacy.value = p.prendasPendientes || '';
@@ -2283,7 +2517,6 @@
         }`;
 
         fila.innerHTML = `
-          <!-- INFORMACIÓN DE LA VARIANTE -->
           <div class="flex items-center gap-2.5 min-w-[200px]">
             <button type="button" onclick="window.toggleSurtirTodo(${index})" class="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs border transition ${
               esCompleto 
@@ -2303,7 +2536,6 @@
             </div>
           </div>
 
-          <!-- CONTROLES RÁPIDOS (- / +) -->
           <div class="flex items-center gap-1.5">
             <button type="button" onclick="window.ajustarRecibidas(${index}, -1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 flex items-center justify-center font-bold text-xs shadow transition">-</button>
             <span class="w-10 text-center font-black font-mono text-sm ${esCompleto ? 'text-emerald-400' : 'text-white'}">${recibidas} / ${cant}</span>
@@ -2316,7 +2548,6 @@
         contenedor.appendChild(fila);
       });
 
-      // Actualizar la barra superior del modal
       const barra = document.getElementById('modal-gestionar-barra-estado');
       if (totalPiezasPendientes === 0) {
         barra.className = 'p-3 rounded-xl border bg-emerald-950/40 border-emerald-500/50 flex items-center justify-between text-emerald-300';
@@ -2360,11 +2591,7 @@
       const v = variantesGestionEnCurso[index];
       if (!v) return;
       const cant = parseInt(v.cant) || 0;
-      if (v.recibidas >= cant) {
-        v.recibidas = 0;
-      } else {
-        v.recibidas = cant;
-      }
+      v.recibidas = (v.recibidas >= cant) ? 0 : cant;
       renderizarFilasGestionStock();
     };
 
@@ -2385,7 +2612,6 @@
       let dataUpdate = {};
 
       if (variantesGestionEnCurso.length > 0) {
-        // Armar el texto faltante automáticamente
         const faltantes = [];
         variantesGestionEnCurso.forEach(v => {
           if (v.origen === 'comprar') {
@@ -2404,7 +2630,6 @@
           "prendasEstructura.variantes": variantesGestionEnCurso
         };
       } else {
-        // Pedido viejo en texto libre
         const textoLegacy = document.getElementById('modal-gestionar-input-pendientes-legacy').value.trim();
         dataUpdate = {
           prendasPendientes: textoLegacy
