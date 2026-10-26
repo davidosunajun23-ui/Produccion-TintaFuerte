@@ -191,11 +191,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-400 mb-1">Técnica *</label>
-            <select id="input-tecnica" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
-              <option value="DTF Textil">DTF Textil</option>
-              <option value="Bordado Directo">Bordado Directo</option>
-              <option value="Parche DTF / Bordado">Parche DTF / Bordado</option>
-            </select>
+            <div class="flex gap-1.5">
+              <select id="input-tecnica" onchange="verificarNuevaTecnica(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-semibold">
+                <!-- Se llena dinámicamente con Firestore -->
+              </select>
+              <button type="button" onclick="pedirNuevaTecnica('input-tecnica')" class="px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sky-400 font-bold text-sm shadow" title="Agregar nueva técnica">+</button>
+            </div>
           </div>
           <div>
             <label class="block font-semibold text-slate-400 mb-1">Fecha Compromiso (Opcional)</label>
@@ -322,11 +323,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-400 mb-1">Técnica *</label>
-            <select id="edit-tecnica" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
-              <option value="DTF Textil">DTF Textil</option>
-              <option value="Bordado Directo">Bordado Directo</option>
-              <option value="Parche DTF / Bordado">Parche DTF / Bordado</option>
-            </select>
+            <div class="flex gap-1.5">
+              <select id="edit-tecnica" onchange="verificarNuevaTecnica(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-semibold">
+                <!-- Se llena dinámicamente con Firestore -->
+              </select>
+              <button type="button" onclick="pedirNuevaTecnica('edit-tecnica')" class="px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sky-400 font-bold text-sm shadow" title="Agregar nueva técnica">+</button>
+            </div>
           </div>
           <div>
             <label class="block font-semibold text-slate-400 mb-1">Fecha Compromiso Entrega</label>
@@ -478,7 +480,7 @@
         </button>
       </div>
 
-      <!-- VISTA 1: CHECKLIST DE SÓLO LO QUE FALTA (ORDENADO Y SIN COMPLETOS) -->
+      <!-- VISTA 1: CHECKLIST DE SÓLO LO QUE FALTA -->
       <div id="vista-stock-recepcion" class="space-y-4 text-xs">
         <div class="bg-blue-950/30 border border-blue-500/40 p-3 rounded-xl flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -708,9 +710,11 @@
     const db = getFirestore(app);
     const pedidosRef = collection(db, "pedidos");
     const catalogoRef = collection(db, "catalogoPrendas");
+    const tecnicasRef = collection(db, "tecnicas");
 
     let pedidos = [];
     let catalogo = [];
+    let tecnicas = [];
     let imagenesTemporales = [];
     let imagenesEdicion = [];
     let subtabMostradorActual = 'activos';
@@ -749,6 +753,105 @@
     }, (error) => {
       console.error("Error al sincronizar catálogo:", error);
     });
+
+    // OYENTE EN TIEMPO REAL: TÉCNICAS (CON SERIGRAFÍA Y PERSISTENCIA)
+    const qTecnicas = query(tecnicasRef);
+    onSnapshot(qTecnicas, (snapshot) => {
+      tecnicas = [];
+      snapshot.forEach((docSnap) => {
+        tecnicas.push({ id: docSnap.id, ...docSnap.data() });
+      });
+
+      if (tecnicas.length === 0 && snapshot.metadata.fromCache === false) {
+        inicializarTecnicasBase();
+      } else {
+        actualizarSelectsTecnicas();
+      }
+    }, (error) => {
+      console.error("Error al sincronizar técnicas:", error);
+    });
+
+    async function inicializarTecnicasBase() {
+      const baseTecnicas = [
+        "DTF Textil",
+        "Bordado Directo",
+        "Parche DTF / Bordado",
+        "Serigrafía",
+        "Sublimación",
+        "Vinil Textil"
+      ];
+      for (const nombre of baseTecnicas) {
+        await addDoc(tecnicasRef, { nombre });
+      }
+    }
+
+    function actualizarSelectsTecnicas() {
+      const selects = [
+        document.getElementById('input-tecnica'),
+        document.getElementById('edit-tecnica')
+      ];
+
+      selects.forEach(select => {
+        if (!select) return;
+        const valorPrevio = select.value;
+        select.innerHTML = '';
+
+        tecnicas.sort((a, b) => a.nombre.localeCompare(b.nombre)).forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.nombre;
+          opt.textContent = t.nombre;
+          select.appendChild(opt);
+        });
+
+        const optNueva = document.createElement('option');
+        optNueva.value = "__NUEVA__";
+        optNueva.textContent = "➕ Otra / Nueva técnica...";
+        optNueva.className = "text-sky-400 font-bold";
+        select.appendChild(optNueva);
+
+        if (valorPrevio && valorPrevio !== "__NUEVA__") {
+          select.value = valorPrevio;
+        } else if (tecnicas.some(t => t.nombre === 'DTF Textil')) {
+          select.value = 'DTF Textil';
+        }
+      });
+    }
+
+    window.verificarNuevaTecnica = function(select) {
+      if (select.value === '__NUEVA__') {
+        pedirNuevaTecnica(select.id);
+      }
+    };
+
+    window.pedirNuevaTecnica = async function(selectId) {
+      const nombreNueva = prompt("Escribe el nombre de la nueva técnica de personalización:");
+      if (!nombreNueva || nombreNueva.trim() === '') {
+        const select = document.getElementById(selectId);
+        if (select && select.value === '__NUEVA__') {
+          select.value = 'DTF Textil';
+        }
+        return;
+      }
+
+      const formateado = nombreNueva.trim();
+      const existe = tecnicas.some(t => t.nombre.toLowerCase() === formateado.toLowerCase());
+
+      if (existe) {
+        const select = document.getElementById(selectId);
+        if (select) select.value = formateado;
+        return;
+      }
+
+      try {
+        await addDoc(tecnicasRef, { nombre: formateado });
+        setTimeout(() => {
+          const select = document.getElementById(selectId);
+          if (select) select.value = formateado;
+        }, 300);
+      } catch (err) {
+        console.error("Error al guardar nueva técnica:", err);
+      }
+    };
 
     async function inicializarCatalogoBase() {
       const base = [
@@ -1278,7 +1381,7 @@
     }
 
     // ====================================================
-    // INFORME Y CHECKLIST MASIVO DE STOCK GENERAL
+    // INFORME Y CHECKLIST DE STOCK GENERAL
     // ====================================================
     let resumenStockWhatsAppGlobal = "";
 
@@ -1342,7 +1445,6 @@
 
       const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
       
-      // Filtrar órdenes que tengan al menos 1 prenda que REALMENTE FALTE por comprar/recibir
       const ordenesConFaltantes = activos.filter(p => {
         if (!p.prendasEstructura || !Array.isArray(p.prendasEstructura.variantes)) return false;
         return p.prendasEstructura.variantes.some(v => {
@@ -1394,7 +1496,6 @@
           const falta = Math.max(0, cant - recibidas);
           const completo = falta === 0;
 
-          // Si ya está completo, NO lo mostramos en esta pantalla para no generar ruido
           if (completo) return;
 
           totalFaltantesOrden += falta;
@@ -1428,11 +1529,8 @@
         }
       });
 
-      // Si todas las prendas de este pedido quedaron completas, retiramos la tarjeta
       if (totalFaltantesOrden === 0) {
         tarjeta.remove();
-        
-        // Si no quedan más pedidos pendientes en pantalla
         const contenedor = document.getElementById('contenido-stock-recepcion-masiva');
         if (contenedor.children.length === 0) {
           contenedor.innerHTML = `
