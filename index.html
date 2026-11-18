@@ -558,7 +558,7 @@
 
         <div>
           <label class="block font-semibold text-slate-300 mb-1">Movimientos Registrados:</label>
-          <div id="modal-pagos-lista" class="max-h-40 overflow-y-auto space-y-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-700/60 text-xs"></div>
+          <div id="modal-pagos-lista" class="max-h-44 overflow-y-auto space-y-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-700/60 text-xs"></div>
         </div>
 
         <div id="form-nuevo-abono" class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2.5">
@@ -872,7 +872,6 @@
       return (txt || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     }
 
-    // DETERMINAR SI UN PEDIDO TIENE STOCK PENDIENTE POR SURTIR
     function pedidoTienePendientesPorSurtir(pedido) {
       if (pedido.prendasEstructura && Array.isArray(pedido.prendasEstructura.variantes)) {
         const tieneVariantePendiente = pedido.prendasEstructura.variantes.some(v => {
@@ -887,7 +886,6 @@
       return !!(pedido.prendasPendientes && pedido.prendasPendientes.trim() !== '');
     }
 
-    // DOBLE MÉTRICA DE STOCK: PIEZAS TOTALES VS PEDIDOS ÚNICOS POR SURTIR
     function actualizarContadoresStock() {
       const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
       let totalPiezasFaltantes = 0;
@@ -1851,7 +1849,7 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR (SIN BOTÓN DE DISEÑOS, CON FILTRO POR SURTIR)
+    // VISTA MOSTRADOR
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
@@ -2348,7 +2346,9 @@
       }
     };
 
-    // MODAL PAGOS (CON ENLACES A COMPROBANTES EN DRIVE)
+    // ====================================================
+    // MODAL PAGOS (CON AGREGAR / EDITAR COMPROBANTE EN HISTORIAL)
+    // ====================================================
     window.abrirModalPagos = function(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
@@ -2366,7 +2366,7 @@
       lista.innerHTML = '';
 
       if (p.pagos && p.pagos.length > 0) {
-        p.pagos.forEach((pago) => {
+        p.pagos.forEach((pago, idx) => {
           const item = document.createElement('div');
           item.className = 'flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 gap-2';
           const linkComp = (pago.comprobanteUrl || '').trim();
@@ -2379,7 +2379,14 @@
                 <a href="${linkComp}" target="_blank" rel="noopener noreferrer" class="bg-sky-600/25 hover:bg-sky-600/40 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1 transition">
                   <i class="fa-solid fa-image"></i> Ver comprobante
                 </a>
-              ` : ''}
+                <button type="button" onclick="window.editarComprobantePago('${p.id}', ${idx})" class="text-slate-400 hover:text-sky-300 text-[10px] p-1" title="Editar o quitar link de comprobante">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+              ` : `
+                <button type="button" onclick="window.editarComprobantePago('${p.id}', ${idx})" class="bg-slate-700/70 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold inline-flex items-center gap-1 transition" title="Adjuntar link de comprobante Drive">
+                  <i class="fa-solid fa-plus"></i> Comprobante
+                </button>
+              `}
             </div>
             <span class="text-[10px] text-slate-400 whitespace-nowrap">${pago.fecha || ''}</span>
           `;
@@ -2400,6 +2407,30 @@
       }
 
       document.getElementById('modal-pagos').classList.remove('hidden');
+    };
+
+    window.editarComprobantePago = async function(pedidoId, indexPago) {
+      const p = pedidos.find(item => item.id === pedidoId);
+      if (!p || !p.pagos || !p.pagos[indexPago]) return;
+
+      const actual = p.pagos[indexPago].comprobanteUrl || '';
+      const nuevoLink = prompt("Pega el enlace de Google Drive del comprobante (déjalo vacío para quitarlo):", actual);
+
+      if (nuevoLink === null) return; // Usuario canceló
+
+      const pagosActualizados = [...p.pagos];
+      pagosActualizados[indexPago] = {
+        ...pagosActualizados[indexPago],
+        comprobanteUrl: nuevoLink.trim()
+      };
+
+      try {
+        await updateDoc(doc(db, "pedidos", pedidoId), { pagos: pagosActualizados });
+        abrirModalPagos(pedidoId);
+      } catch (err) {
+        console.error("Error al guardar comprobante en movimiento:", err);
+        alert("No se pudo actualizar el enlace del comprobante.");
+      }
     };
 
     window.cerrarModalPagos = function() {
