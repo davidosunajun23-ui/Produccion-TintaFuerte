@@ -102,17 +102,24 @@
     <!-- VISTA MOSTRADOR -->
     <section id="vista-mostrador" class="hidden">
       <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
-        <div class="flex items-center flex-wrap gap-3">
+        <div class="flex items-center flex-wrap gap-2.5">
           <div>
             <h2 class="text-2xl font-black tracking-wide text-slate-200 flex items-center gap-2">
               <i class="fa-solid fa-table-list"></i> CONTROL GENERAL Y FINANZAS
             </h2>
             <p class="text-xs text-slate-400">Sincronización multi-dispositivo de anticipos, abonos y prendas</p>
           </div>
-          <!-- BOTÓN STOCK PENDIENTE GENERAL -->
-          <button onclick="abrirModalStockGeneral()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow transition">
+
+          <!-- BOTÓN 1: STOCK PENDIENTE GENERAL (PIEZAS TOTALES) -->
+          <button onclick="abrirModalStockGeneral()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow transition" title="Ver lista consolidada de todas las piezas por comprar">
             <i class="fa-solid fa-boxes-packing text-amber-400"></i> Stock Pendiente General
             <span id="badge-piezas-pendientes" class="bg-amber-500 text-slate-900 px-1.5 py-0.2 rounded-full font-black text-[10px]">0</span>
+          </button>
+
+          <!-- BOTÓN 2: PEDIDOS POR SURTIR (ÓRDENES ÚNICAS + FILTRO RÁPIDO) -->
+          <button id="btn-filtro-pedidos-surtir" onclick="toggleFiltroPedidosPorSurtir()" class="bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/50 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow transition" title="Filtrar tabla para ver solo los pedidos que tienen prendas pendientes">
+            <i class="fa-solid fa-clipboard-list text-sky-400"></i> Pedidos por Surtir
+            <span id="badge-pedidos-pendientes" class="bg-sky-500 text-slate-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">0</span>
           </button>
         </div>
 
@@ -136,6 +143,14 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- BANNER INDICADOR DE FILTRO POR SURTIR ACTIVO -->
+      <div id="banner-filtro-surtir" class="hidden mb-3 bg-sky-950/50 border border-sky-500/50 rounded-xl px-4 py-2 flex items-center justify-between text-xs">
+        <span class="text-sky-300 font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-filter text-sky-400"></i> Mostrando únicamente los pedidos con prendas pendientes por surtir
+        </span>
+        <button onclick="toggleFiltroPedidosPorSurtir()" class="text-sky-300 hover:text-white font-bold underline">Mostrar todos</button>
       </div>
 
       <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
@@ -236,9 +251,17 @@
           </div>
         </div>
 
-        <div>
-          <label class="block font-semibold text-slate-400 mb-1">Ubicaciones y Medidas</label>
-          <input type="text" id="input-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. Frente chico 10cm + Espalda grande 30x35cm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-400 mb-1">Ubicaciones y Medidas</label>
+            <input type="text" id="input-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="Ej. Frente chico 10cm + Espalda grande 30x35cm">
+          </div>
+          <div>
+            <label class="block font-semibold text-sky-400 mb-1">
+              <i class="fa-brands fa-google-drive"></i> Enlace de Archivos / Diseños Drive (Opcional)
+            </label>
+            <input type="url" id="input-link-disenos" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white placeholder-slate-500" placeholder="https://drive.google.com/...">
+          </div>
         </div>
 
         <!-- MOCKUPS (HASTA 6) -->
@@ -253,7 +276,7 @@
           <div id="preview-container" class="flex flex-wrap gap-2 mt-2 empty:hidden"></div>
         </div>
 
-        <!-- FINANZAS -->
+        <!-- FINANZAS Y COMPROBANTE DE ANTICIPO -->
         <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
@@ -270,13 +293,19 @@
             </div>
           </div>
 
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Método de Pago del Anticipo:</label>
-            <select id="input-metodo-anticipo" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-semibold">
-              <option value="Transferencia">Transferencia Bancaria</option>
-              <option value="Efectivo">Efectivo en Sucursal</option>
-              <option value="Tarjeta">Tarjeta (Terminal)</option>
-            </select>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Método de Pago del Anticipo:</label>
+              <select id="input-metodo-anticipo" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-semibold">
+                <option value="Transferencia">Transferencia Bancaria</option>
+                <option value="Efectivo">Efectivo en Sucursal</option>
+                <option value="Tarjeta">Tarjeta (Terminal)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-400 mb-1">Link Comprobante Anticipo (Drive - Opcional):</label>
+              <input type="url" id="input-comprobante-anticipo" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white placeholder-slate-500" placeholder="https://drive.google.com/...">
+            </div>
           </div>
         </div>
 
@@ -367,9 +396,17 @@
           </div>
         </div>
 
-        <div>
-          <label class="block font-semibold text-slate-400 mb-1">Ubicaciones y Medidas</label>
-          <input type="text" id="edit-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-400 mb-1">Ubicaciones y Medidas</label>
+            <input type="text" id="edit-ubicaciones" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-sky-400 mb-1">
+              <i class="fa-brands fa-google-drive"></i> Enlace de Archivos / Diseños Drive (Opcional)
+            </label>
+            <input type="url" id="edit-link-disenos" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white placeholder-slate-500" placeholder="https://drive.google.com/...">
+          </div>
         </div>
 
         <!-- GESTIÓN DE MOCKUPS EN EDICIÓN -->
@@ -468,7 +505,6 @@
         <button onclick="cerrarModalStockGeneral()" class="text-slate-400 hover:text-white text-xl">&times;</button>
       </div>
 
-      <!-- CONTENIDO AGRUPADO CONSOLIDADO -->
       <div id="contenido-stock-compras" class="space-y-4 text-xs">
         <div class="text-center py-8 text-slate-400">Calculando prendas pendientes...</div>
       </div>
@@ -487,7 +523,9 @@
     </div>
   </div>
 
-  <!-- MODAL: GESTIÓN DE ABONOS Y PAGOS -->
+  <!-- ========================================== -->
+  <!-- MODAL: GESTIÓN DE ABONOS, PAGOS Y COMPROBANTES -->
+  <!-- ========================================== -->
   <div id="modal-pagos" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center hidden p-4">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-5 shadow-2xl">
       <div class="flex justify-between items-center pb-3 border-b border-slate-700 mb-3">
@@ -520,10 +558,10 @@
 
         <div>
           <label class="block font-semibold text-slate-300 mb-1">Movimientos Registrados:</label>
-          <div id="modal-pagos-lista" class="max-h-36 overflow-y-auto space-y-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-700/60 text-xs"></div>
+          <div id="modal-pagos-lista" class="max-h-40 overflow-y-auto space-y-1.5 bg-slate-900/60 p-2 rounded-lg border border-slate-700/60 text-xs"></div>
         </div>
 
-        <div id="form-nuevo-abono" class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2">
+        <div id="form-nuevo-abono" class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2.5">
           <span class="font-bold text-blue-400 block text-xs">Registrar Nuevo Abono / Liquidación:</span>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -539,6 +577,14 @@
               </select>
             </div>
           </div>
+
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">
+              <i class="fa-brands fa-google-drive text-sky-400"></i> Link de Comprobante (Drive - Opcional):
+            </label>
+            <input type="url" id="input-abono-comprobante" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white placeholder-slate-500" placeholder="https://drive.google.com/...">
+          </div>
+
           <button onclick="agregarAbono()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs shadow transition">
             <i class="fa-solid fa-plus-circle"></i> Aplicar Abono en Nube
           </button>
@@ -674,6 +720,7 @@
     let imagenesTemporales = [];
     let imagenesEdicion = [];
     let subtabMostradorActual = 'activos';
+    let filtroSoloPorSurtir = false;
     let terminoBusqueda = '';
     let variantesGestionEnCurso = [];
     const TALLAS_DISPONIBLES = ['2XCH', 'XCH', 'CH', 'M', 'G', 'XG', '2XG', '3XG', 'Unitalla'];
@@ -686,7 +733,7 @@
         pedidos.push({ id: docSnap.id, ...docSnap.data() });
       });
       renderizarVistas();
-      actualizarContadorStockGeneral();
+      actualizarContadoresStock();
     }, (error) => {
       console.error("Error al sincronizar pedidos:", error);
     });
@@ -825,6 +872,67 @@
       return (txt || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     }
 
+    // DETERMINAR SI UN PEDIDO TIENE STOCK PENDIENTE POR SURTIR
+    function pedidoTienePendientesPorSurtir(pedido) {
+      if (pedido.prendasEstructura && Array.isArray(pedido.prendasEstructura.variantes)) {
+        const tieneVariantePendiente = pedido.prendasEstructura.variantes.some(v => {
+          if (v.origen === 'comprar') {
+            const falta = Math.max(0, (parseInt(v.cant) || 0) - (parseInt(v.recibidas) || 0));
+            return falta > 0;
+          }
+          return false;
+        });
+        if (tieneVariantePendiente) return true;
+      }
+      return !!(pedido.prendasPendientes && pedido.prendasPendientes.trim() !== '');
+    }
+
+    // DOBLE MÉTRICA DE STOCK: PIEZAS TOTALES VS PEDIDOS ÚNICOS POR SURTIR
+    function actualizarContadoresStock() {
+      const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
+      let totalPiezasFaltantes = 0;
+      let totalPedidosPorSurtir = 0;
+
+      activos.forEach(p => {
+        if (pedidoTienePendientesPorSurtir(p)) {
+          totalPedidosPorSurtir += 1;
+        }
+        if (p.prendasEstructura && p.prendasEstructura.variantes) {
+          p.prendasEstructura.variantes.forEach(v => {
+            if (v.origen === 'comprar') {
+              const pendiente = Math.max(0, (parseInt(v.cant) || 0) - (parseInt(v.recibidas) || 0));
+              totalPiezasFaltantes += pendiente;
+            }
+          });
+        }
+      });
+
+      const badgePiezas = document.getElementById('badge-piezas-pendientes');
+      if (badgePiezas) badgePiezas.innerText = totalPiezasFaltantes;
+
+      const badgePedidos = document.getElementById('badge-pedidos-pendientes');
+      if (badgePedidos) badgePedidos.innerText = totalPedidosPorSurtir;
+    }
+
+    window.toggleFiltroPedidosPorSurtir = function() {
+      filtroSoloPorSurtir = !filtroSoloPorSurtir;
+      const btn = document.getElementById('btn-filtro-pedidos-surtir');
+      const banner = document.getElementById('banner-filtro-surtir');
+
+      if (filtroSoloPorSurtir) {
+        if (subtabMostradorActual !== 'activos') {
+          cambiarSubtabMostrador('activos');
+        }
+        btn.className = 'bg-sky-600 text-white border border-sky-400 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-lg transition';
+        banner.classList.remove('hidden');
+      } else {
+        btn.className = 'bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/50 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow transition';
+        banner.classList.add('hidden');
+      }
+
+      renderizarMostrador();
+    };
+
     window.filtrarPedidosEnTiempoReal = function() {
       const input = document.getElementById('input-buscador-general');
       const btnLimpiar = document.getElementById('btn-limpiar-busqueda');
@@ -893,6 +1001,11 @@
       } else {
         btnEntregados.className = 'px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 bg-slate-700 text-white shadow';
         btnActivos.className = 'px-3.5 py-1.5 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white';
+        if (filtroSoloPorSurtir) {
+          filtroSoloPorSurtir = false;
+          document.getElementById('btn-filtro-pedidos-surtir').className = 'bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/50 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow transition';
+          document.getElementById('banner-filtro-surtir').classList.add('hidden');
+        }
       }
 
       renderizarMostrador();
@@ -996,7 +1109,7 @@
     }
 
     // ====================================================
-    // BUSCADOR CUSTOM DE PRENDA (DROPDOWN OSCURO INTEGRADO)
+    // BUSCADOR CUSTOM DE PRENDA
     // ====================================================
     window.buscarPrendaEnFila = function(input) {
       const contenedor = input.closest('.prenda-search-wrapper');
@@ -1062,7 +1175,7 @@
     };
 
     // ====================================================
-    // VARIANTES: FILAS DINÁMICAS (CON 2XCH Y XCH DISPONIBLES)
+    // VARIANTES: FILAS DINÁMICAS
     // ====================================================
     window.toggleTallasPendientes = function(checkbox, modo) {
       const contenedor = document.getElementById(modo === 'nuevo' ? 'seccion-variantes-nuevo' : 'seccion-variantes-edit');
@@ -1337,25 +1450,6 @@
     // INFORME CONSOLIDADO: AGRUPADO POR PRENDA + COLOR
     // ====================================================
     let resumenStockWhatsAppGlobal = "";
-
-    function actualizarContadorStockGeneral() {
-      const activos = pedidos.filter(p => p.estatus !== 'Entregado y Cerrado');
-      let totalPiezasFaltantes = 0;
-
-      activos.forEach(p => {
-        if (p.prendasEstructura && p.prendasEstructura.variantes) {
-          p.prendasEstructura.variantes.forEach(v => {
-            if (v.origen === 'comprar') {
-              const pendiente = Math.max(0, (parseInt(v.cant) || 0) - (parseInt(v.recibidas) || 0));
-              totalPiezasFaltantes += pendiente;
-            }
-          });
-        }
-      });
-
-      const badge = document.getElementById('badge-piezas-pendientes');
-      if (badge) badge.innerText = totalPiezasFaltantes;
-    }
 
     window.abrirModalStockGeneral = function() {
       generarInformeStockGeneral();
@@ -1651,7 +1745,7 @@
     }
 
     // ====================================================
-    // VISTA TALLER
+    // VISTA TALLER (CON BOTÓN "DESCARGAR DISEÑOS")
     // ====================================================
     function renderizarTaller() {
       const grid = document.getElementById('grid-taller');
@@ -1670,6 +1764,7 @@
       pedidosTaller.forEach(p => {
         const tienePendiente = p.prendasPendientes && p.prendasPendientes.trim() !== '';
         const infoFecha = calcularInfoFecha(p.fechaEntrega, p.estatus);
+        const linkDisenos = (p.linkDisenos || '').trim();
 
         const card = document.createElement('div');
         card.className = `bg-slate-800 rounded-xl border ${tienePendiente ? 'border-amber-500/80 shadow-amber-500/10' : 'border-slate-700'} overflow-hidden shadow-xl flex flex-col justify-between hover:border-blue-500/50 transition`;
@@ -1732,6 +1827,12 @@
                 <span class="text-slate-400 block font-semibold text-[11px] mb-0.5"><i class="fa-solid fa-ruler-combined text-amber-400"></i> UBICACIONES:</span>
                 <p class="text-slate-200 text-xs">${p.ubicaciones || 'Ver mockup'}</p>
               </div>
+
+              ${linkDisenos ? `
+                <a href="${linkDisenos}" target="_blank" rel="noopener noreferrer" class="w-full bg-sky-600/20 hover:bg-sky-600/35 text-sky-300 border border-sky-500/50 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2 text-xs shadow transition">
+                  <i class="fa-solid fa-download"></i> Descargar diseños
+                </a>
+              ` : ''}
             </div>
           </div>
 
@@ -1750,7 +1851,7 @@
     };
 
     // ====================================================
-    // VISTA MOSTRADOR
+    // VISTA MOSTRADOR (SIN BOTÓN DE DISEÑOS, CON FILTRO POR SURTIR)
     // ====================================================
     function renderizarMostrador() {
       const tbody = document.getElementById('tabla-mostrador-body');
@@ -1764,6 +1865,10 @@
 
       let listaMostrador = (subtabMostradorActual === 'activos') ? pedidosActivos : pedidosEntregados;
 
+      if (filtroSoloPorSurtir) {
+        listaMostrador = listaMostrador.filter(p => pedidoTienePendientesPorSurtir(p));
+      }
+
       if (terminoBusqueda) {
         listaMostrador = listaMostrador.filter(p => coincideConBusqueda(p, terminoBusqueda));
       }
@@ -1775,7 +1880,9 @@
           ? 'No hay pedidos activos en proceso.' 
           : 'No hay pedidos en el historial de entregados.';
         
-        if (terminoBusqueda) {
+        if (filtroSoloPorSurtir) {
+          mensajeVacio = 'No hay pedidos pendientes por surtir en este momento.';
+        } else if (terminoBusqueda) {
           mensajeVacio = `No se encontraron pedidos que coincidan con "<strong>${terminoBusqueda}</strong>"`;
         }
 
@@ -2111,6 +2218,8 @@
       const total = parseFloat(document.getElementById('input-total').value) || 0;
       const anticipo = parseFloat(document.getElementById('input-anticipo').value) || 0;
       const metodoAnticipo = document.getElementById('input-metodo-anticipo').value;
+      const comprobanteAnticipo = (document.getElementById('input-comprobante-anticipo').value || '').trim();
+      const linkDisenos = (document.getElementById('input-link-disenos').value || '').trim();
 
       const infoPrendas = recopilarPrendas(true);
 
@@ -2122,7 +2231,8 @@
         pagosIniciales.push({
           monto: anticipo,
           metodo: metodoAnticipo,
-          fecha: fechaHora
+          fecha: fechaHora,
+          comprobanteUrl: comprobanteAnticipo
         });
       }
 
@@ -2135,6 +2245,7 @@
         prendasEstructura: infoPrendas.estructura,
         prendasPendientes: infoPrendas.prendasPendientes,
         ubicaciones: document.getElementById('input-ubicaciones').value,
+        linkDisenos: linkDisenos,
         mockupUrls: [...imagenesTemporales],
         total: total,
         pagos: pagosIniciales,
@@ -2166,6 +2277,7 @@
       document.getElementById('edit-tecnica').value = p.tecnica || 'DTF Textil';
       document.getElementById('edit-fecha-entrega').value = p.fechaEntrega || '';
       document.getElementById('edit-ubicaciones').value = p.ubicaciones || '';
+      document.getElementById('edit-link-disenos').value = p.linkDisenos || '';
       document.getElementById('edit-total').value = p.total ?? 0;
 
       imagenesEdicion = (p.mockupUrls && Array.isArray(p.mockupUrls)) ? [...p.mockupUrls] : [];
@@ -2205,6 +2317,7 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Guardando...';
 
       const infoPrendas = recopilarPrendas(false);
+      const linkDisenos = (document.getElementById('edit-link-disenos').value || '').trim();
 
       const dataActualizada = {
         cliente: document.getElementById('edit-cliente').value,
@@ -2214,6 +2327,7 @@
         prendas: infoPrendas.texto,
         prendasEstructura: infoPrendas.estructura,
         ubicaciones: document.getElementById('edit-ubicaciones').value,
+        linkDisenos: linkDisenos,
         mockupUrls: [...imagenesEdicion],
         total: parseFloat(document.getElementById('edit-total').value) || 0
       };
@@ -2234,7 +2348,7 @@
       }
     };
 
-    // MODAL PAGOS
+    // MODAL PAGOS (CON ENLACES A COMPROBANTES EN DRIVE)
     window.abrirModalPagos = function(id) {
       const p = pedidos.find(item => item.id === id);
       if (!p) return;
@@ -2254,13 +2368,20 @@
       if (p.pagos && p.pagos.length > 0) {
         p.pagos.forEach((pago) => {
           const item = document.createElement('div');
-          item.className = 'flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700';
+          item.className = 'flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700 gap-2';
+          const linkComp = (pago.comprobanteUrl || '').trim();
+
           item.innerHTML = `
-            <div>
+            <div class="flex flex-wrap items-center gap-2">
               <span class="font-bold text-white">$${formatDinero(pago.monto)}</span>
-              <span class="text-[10px] text-slate-400 ml-2">(${pago.metodo})</span>
+              <span class="text-[10px] text-slate-400">(${pago.metodo})</span>
+              ${linkComp ? `
+                <a href="${linkComp}" target="_blank" rel="noopener noreferrer" class="bg-sky-600/25 hover:bg-sky-600/40 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1 transition">
+                  <i class="fa-solid fa-image"></i> Ver comprobante
+                </a>
+              ` : ''}
             </div>
-            <span class="text-[10px] text-slate-400">${pago.fecha || ''}</span>
+            <span class="text-[10px] text-slate-400 whitespace-nowrap">${pago.fecha || ''}</span>
           `;
           lista.appendChild(item);
         });
@@ -2269,6 +2390,8 @@
       }
 
       const formAbono = document.getElementById('form-nuevo-abono');
+      document.getElementById('input-abono-comprobante').value = '';
+
       if (saldo <= 0.001) {
         formAbono.classList.add('hidden');
       } else {
@@ -2287,6 +2410,7 @@
       const id = document.getElementById('modal-pagos-id').value;
       const monto = parseFloat(document.getElementById('input-abono-monto').value);
       const metodo = document.getElementById('input-abono-metodo').value;
+      const comprobanteUrl = (document.getElementById('input-abono-comprobante').value || '').trim();
 
       if (!monto || monto <= 0) {
         alert('Ingresa un monto válido.');
@@ -2300,7 +2424,12 @@
       const hoy = new Date();
       const fechaHora = hoy.toLocaleDateString() + ' ' + hoy.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      pagosActuales.push({ monto, metodo, fecha: fechaHora });
+      pagosActuales.push({ 
+        monto, 
+        metodo, 
+        fecha: fechaHora,
+        comprobanteUrl: comprobanteUrl
+      });
 
       try {
         await updateDoc(doc(db, "pedidos", id), { pagos: pagosActuales });
