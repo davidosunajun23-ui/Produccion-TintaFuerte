@@ -723,6 +723,7 @@
     let filtroSoloPorSurtir = false;
     let terminoBusqueda = '';
     let variantesGestionEnCurso = [];
+    let enfocarInputDisenoId = null;
     const TALLAS_DISPONIBLES = ['2XCH', 'XCH', 'CH', 'M', 'G', 'XG', '2XG', '3XG', 'Unitalla'];
 
     // OYENTE EN TIEMPO REAL: PEDIDOS
@@ -734,6 +735,15 @@
       });
       renderizarVistas();
       actualizarContadoresStock();
+
+      if (enfocarInputDisenoId) {
+        const inputEl = document.getElementById(`input-diseno-confirmado-${enfocarInputDisenoId}`);
+        if (inputEl) {
+          inputEl.focus();
+          inputEl.select();
+        }
+        enfocarInputDisenoId = null;
+      }
     }, (error) => {
       console.error("Error al sincronizar pedidos:", error);
     });
@@ -1743,7 +1753,40 @@
     }
 
     // ====================================================
-    // VISTA TALLER (CON BOTÓN "DESCARGAR DISEÑOS")
+    // ACCIONES DE CHECKLIST DE DISEÑO EN TALLER
+    // ====================================================
+    window.toggleDisenoListo = async function(id) {
+      const p = pedidos.find(item => item.id === id);
+      if (!p) return;
+
+      const nuevoEstado = !p.disenoListo;
+      if (nuevoEstado) {
+        enfocarInputDisenoId = id;
+      }
+
+      try {
+        await updateDoc(doc(db, "pedidos", id), { disenoListo: nuevoEstado });
+      } catch (err) {
+        console.error("Error al actualizar estado de diseño:", err);
+      }
+    };
+
+    window.guardarConfirmadoPor = async function(id, valor) {
+      const p = pedidos.find(item => item.id === id);
+      if (!p) return;
+
+      const limpio = (valor || '').trim();
+      if ((p.disenoConfirmadoPor || '') === limpio) return;
+
+      try {
+        await updateDoc(doc(db, "pedidos", id), { disenoConfirmadoPor: limpio });
+      } catch (err) {
+        console.error("Error al guardar quién confirmó el diseño:", err);
+      }
+    };
+
+    // ====================================================
+    // VISTA TALLER (CON CHECKLIST DISEÑO + CONFIRMADO POR)
     // ====================================================
     function renderizarTaller() {
       const grid = document.getElementById('grid-taller');
@@ -1763,6 +1806,8 @@
         const tienePendiente = p.prendasPendientes && p.prendasPendientes.trim() !== '';
         const infoFecha = calcularInfoFecha(p.fechaEntrega, p.estatus);
         const linkDisenos = (p.linkDisenos || '').trim();
+        const disenoOk = !!p.disenoListo;
+        const confirmadoPor = (p.disenoConfirmadoPor || '').replace(/"/g, '&quot;');
 
         const card = document.createElement('div');
         card.className = `bg-slate-800 rounded-xl border ${tienePendiente ? 'border-amber-500/80 shadow-amber-500/10' : 'border-slate-700'} overflow-hidden shadow-xl flex flex-col justify-between hover:border-blue-500/50 transition`;
@@ -1786,21 +1831,43 @@
         card.innerHTML = `
           <div>
             <div class="bg-slate-900 p-3 border-b border-slate-700">
-              <div class="flex justify-between items-start gap-1.5 mb-1">
+              <div class="flex justify-between items-start gap-2">
                 <div>
                   <span class="text-xs font-mono font-black text-blue-400">${p.id}</span>
                   <h3 class="font-bold text-white text-sm leading-tight">${p.cliente}</h3>
+                  ${infoFecha.tieneFecha ? `
+                    <div class="mt-1.5 flex items-center">
+                      ${infoFecha.badgeHtml}
+                    </div>
+                  ` : ''}
                 </div>
-                <span class="text-[11px] px-2 py-0.5 rounded font-bold whitespace-nowrap ${tienePendiente ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-slate-800 text-slate-300'}">
-                  ${tienePendiente ? '⚠️ STOCK PARCIAL' : p.tecnica}
-                </span>
+
+                <!-- COLUMNA DERECHA: ESTATUS STOCK/TÉCNICA + CHECKLIST DISEÑO -->
+                <div class="flex flex-col items-end gap-1.5">
+                  <span class="text-[11px] px-2 py-0.5 rounded font-bold whitespace-nowrap ${tienePendiente ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-slate-800 text-slate-300'}">
+                    ${tienePendiente ? '⚠️ STOCK PARCIAL' : p.tecnica}
+                  </span>
+
+                  <!-- BOTÓN TIPO CHECKLIST: DISEÑO -->
+                  <button type="button" onclick="window.toggleDisenoListo('${p.id}')" class="text-[11px] px-2.5 py-0.5 rounded font-bold inline-flex items-center gap-1.5 border transition shadow-sm ${
+                    disenoOk
+                      ? 'bg-emerald-600/25 text-emerald-300 border-emerald-500/60 hover:bg-emerald-600/35'
+                      : 'bg-rose-600/25 text-rose-300 border-rose-500/60 hover:bg-rose-600/35'
+                  }" title="${disenoOk ? 'Diseño confirmado listo para imprimir' : 'Marcar cuando el diseño esté listo para imprimir'}">
+                    <i class="fa-solid ${disenoOk ? 'fa-square-check text-emerald-400' : 'fa-square text-rose-400'}"></i>
+                    <span>Diseño</span>
+                  </button>
+
+                  <!-- LEYENDA EDITABLE: CONFIRMADO POR -->
+                  <div class="flex items-center justify-end gap-1 text-[10px] text-slate-400">
+                    <span>Confirmado por:</span>
+                    <input type="text" id="input-diseno-confirmado-${p.id}" value="${confirmadoPor}" placeholder="Nombre..."
+                      onblur="window.guardarConfirmadoPor('${p.id}', this.value)"
+                      onkeydown="if(event.key==='Enter'){ this.blur(); }"
+                      class="w-20 bg-slate-800/90 border border-slate-700/80 focus:border-sky-500 rounded px-1.5 py-0.2 text-[10px] text-slate-200 font-semibold placeholder-slate-500 focus:outline-none text-right">
+                  </div>
+                </div>
               </div>
-              
-              ${infoFecha.tieneFecha ? `
-                <div class="mt-1 flex items-center">
-                  ${infoFecha.badgeHtml}
-                </div>
-              ` : ''}
             </div>
 
             ${galeriaHtml}
@@ -2244,6 +2311,8 @@
         prendasPendientes: infoPrendas.prendasPendientes,
         ubicaciones: document.getElementById('input-ubicaciones').value,
         linkDisenos: linkDisenos,
+        disenoListo: false,
+        disenoConfirmadoPor: '',
         mockupUrls: [...imagenesTemporales],
         total: total,
         pagos: pagosIniciales,
@@ -2416,7 +2485,7 @@
       const actual = p.pagos[indexPago].comprobanteUrl || '';
       const nuevoLink = prompt("Pega el enlace de Google Drive del comprobante (déjalo vacío para quitarlo):", actual);
 
-      if (nuevoLink === null) return; // Usuario canceló
+      if (nuevoLink === null) return;
 
       const pagosActualizados = [...p.pagos];
       pagosActualizados[indexPago] = {
